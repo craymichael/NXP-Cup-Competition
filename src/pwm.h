@@ -12,29 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "MK64F12.h"
-#include "serial.h"
-#include "PWM.h"
+#ifndef _PWM_H_
+#define _PWM_H_
 
-#define DEFAULT_SYSTEM_CLOCK (20485760u) /* Default System clock value */
+void SetDutyCycle(uint32_t DutyCycle, uint32_t Frequency, uint32_t dir);
+void SetServoAngle(uint32_t duty);
+void InitPWM();
+void InitServoPWM();
 
-
-// J1 right wheel 5,7
-// J10 left wheel 10,12
-int32_t main(void)
-{
-  
-}
-
-
-/* Initialize suitable modules
- */
-void initialize()
-{
-  // Initialize UART
-  uart_init();
-
-  // Initialize FTMs for PWM
-  InitPWM();
-  InitServoPWM();
-}
+#endif /* PWM_H_ */

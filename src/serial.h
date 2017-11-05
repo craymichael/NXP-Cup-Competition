@@ -12,29 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef _SERIAL_H_
+#define _SERIAL_H_
+
 #include "MK64F12.h"
-#include "serial.h"
-#include "PWM.h"
 
-#define DEFAULT_SYSTEM_CLOCK (20485760u) /* Default System clock value */
+#define BAUD_RATE             (9600u)      // Default baud rate 
+#define DEFAULT_SYSTEM_CLOCK  (20485760u)  // Default system clock (see DEFAULT_SYSTEM_CLOCK  in system_MK64F12.c)
+#define CHAR_COUNT            (10u)        // Default max. permissible length of a sentence
+#define UART_FLUSH_TX         {while(!(UART0_S1 & UART_S1_TDRE_MASK));}
 
+void uart_init(void);
 
-// J1 right wheel 5,7
-// J10 left wheel 10,12
-int32_t main(void)
-{
-  
-}
+uint8_t uart_getchar(void);
+void uart_putchar(uint8_t ch);
 
+void uart_put(uint8_t* ptr_str);
+void uart_get(uint8_t* ptr_str);
+void putnumU(uint32_t i);
 
-/* Initialize suitable modules
- */
-void initialize()
-{
-  // Initialize UART
-  uart_init();
-
-  // Initialize FTMs for PWM
-  InitPWM();
-  InitServoPWM();
-}
+#endif
