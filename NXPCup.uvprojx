@@ -405,6 +405,16 @@
               <FileType>8</FileType>
               <FilePath>.\src\serial.cpp</FilePath>
             </File>
+            <File>
+              <FileName>camera.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\camera.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>camera.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\camera.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

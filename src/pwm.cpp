@@ -15,12 +15,10 @@
 #include "MK64F12.h"
 #include "pwm.h"
 
-/* From clock setup=0 in system_MK64f12.c */
-#define DEFAULT_SYSTEM_CLOCK (20485760u) /* Default System clock value */
-#define PWM_FREQUENCY        (10000u)
-#define FTM0_MOD_VALUE       (DEFAULT_SYSTEM_CLOCK / PWM_FREQUENCY)
-#define PWM_SERVO_FREQ       (50u)
-#define FTM3_MOD_VALUE       (DEFAULT_SYSTEM_CLOCK / (PWM_SERVO_FREQ * 128u))
+#define PWM_FREQUENCY  (10000u)
+#define FTM0_MOD_VALUE (DEFAULT_SYSTEM_CLOCK / PWM_FREQUENCY)
+#define PWM_SERVO_FREQ (50u)
+#define FTM3_MOD_VALUE (DEFAULT_SYSTEM_CLOCK / (PWM_SERVO_FREQ * 128u))
 
 
 /*

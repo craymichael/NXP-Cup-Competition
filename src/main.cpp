@@ -15,21 +15,29 @@
 #include "MK64F12.h"
 #include "serial.h"
 #include "PWM.h"
+#include "camera.h"
 
-#define DEFAULT_SYSTEM_CLOCK (20485760u) /* Default System clock value */
+#define DEBUG_CAM (0) // Camera debugging (1: on, others: off)
+
+#define DEFAULT_SYSTEM_CLOCK (20485760u) // System clock value
+#define BAUD_RATE            (9600u)     // UART Baud Rate
+
+void initialize(void);
 
 
 // J1 right wheel 5,7
 // J10 left wheel 10,12
 int32_t main(void)
 {
+  initialize();
   
+  return 0;
 }
 
 
 /* Initialize suitable modules
  */
-void initialize()
+void initialize(void)
 {
   // Initialize UART
   uart_init();
@@ -37,4 +45,7 @@ void initialize()
   // Initialize FTMs for PWM
   InitPWM();
   InitServoPWM();
+  
+  // Initialize camera
+  init_camera();
 }

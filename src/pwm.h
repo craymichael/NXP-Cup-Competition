@@ -15,6 +15,8 @@
 #ifndef _PWM_H_
 #define _PWM_H_
 
+#define DEFAULT_SYSTEM_CLOCK (20485760u) /* Default System clock value */
+
 void SetDutyCycle(uint32_t DutyCycle, uint32_t Frequency, uint32_t dir);
 void SetServoAngle(uint32_t duty);
 void InitPWM();
