@@ -42,7 +42,7 @@ void FTM2_IRQHandler(void);
 void PIT1_IRQHandler(void);
 void ADC0_IRQHandler(void);
 
-#if DEBUG_CAM == 1
+#if defined(DEBUG_CAM) && DEBUG_CAM == 1
 void debug_camera(void);
 #endif
 

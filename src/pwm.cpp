@@ -15,24 +15,21 @@
 #include "MK64F12.h"
 #include "pwm.h"
 
-#define PWM_FREQUENCY  (10000u)
-#define FTM0_MOD_VALUE (DEFAULT_SYSTEM_CLOCK / PWM_FREQUENCY)
-#define PWM_SERVO_FREQ (50u)
+#define FTM0_MOD_VALUE (DEFAULT_SYSTEM_CLOCK / PWM_DCMOT_FREQ)
 #define FTM3_MOD_VALUE (DEFAULT_SYSTEM_CLOCK / (PWM_SERVO_FREQ * 128u))
 
 
 /*
  * Change the Motor Duty Cycle and Frequency
  *   @param DutyCycle: (0 to 100%)
- *   @param Frequency: (~1000 Hz to 20000 Hz)
  *   @param dir:       1 for C4 active, else C3 active 
  */
-void SetDutyCycle(uint32_t DutyCycle, uint32_t Frequency, uint32_t dir)
+void SetDCMotDuty(uint32_t DutyCycle, uint32_t dir)
 {
   // Calculate the new cutoff value
-  uint16_t mod = (uint16_t) (((DEFAULT_SYSTEM_CLOCK / Frequency) * DutyCycle) / 100u);
+  uint16_t mod = (((DEFAULT_SYSTEM_CLOCK / PWM_DCMOT_FREQ) * DutyCycle) / 100u);
 
-  // Set outputs 
+  // Set outputs
   if(dir == 1) {
     FTM0_C3V = mod;  // PTC4 (dir 1)
     FTM0_C2V = 0;
@@ -40,9 +37,6 @@ void SetDutyCycle(uint32_t DutyCycle, uint32_t Frequency, uint32_t dir)
     FTM0_C2V = mod;  // PTC3 (dir 0)
     FTM0_C3V = 0;
   }
-
-  // Update the clock to the new frequency
-  FTM0_MOD = (DEFAULT_SYSTEM_CLOCK / Frequency);
 }
 
 
