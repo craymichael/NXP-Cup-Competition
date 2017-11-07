@@ -333,7 +333,7 @@
             <v6WtE>0</v6WtE>
             <v6Rtti>0</v6Rtti>
             <VariousControls>
-              <MiscControls></MiscControls>
+              <MiscControls>-DDEBUG_CAM</MiscControls>
               <Define></Define>
               <Undefine></Undefine>
               <IncludePath>C:\Users\Zach\Documents\gsl-2.4</IncludePath>

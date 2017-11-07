@@ -17,8 +17,7 @@
 
 #include "MK64F12.h"
 
-// Debug macro (include in main)
-// #define DEBUG_CAM (1)
+// Debug macro -- DEBUG_CAM
 
 // Default System clock value
 // period = 1/20485760  = 4.8814395e-8
@@ -39,10 +38,10 @@ void init_PIT(void);
 void init_ADC0(void);
 
 void FTM2_IRQHandler(void);
-void PIT1_IRQHandler(void);
+void PIT0_IRQHandler(void);
 void ADC0_IRQHandler(void);
 
-#if defined(DEBUG_CAM) && DEBUG_CAM == 1
+#ifdef DEBUG_CAM
 void debug_camera(void);
 #endif
 

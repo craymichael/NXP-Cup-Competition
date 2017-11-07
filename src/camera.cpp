@@ -25,7 +25,7 @@ uint16_t line[128];  // TODO(code style)
 uint16_t ADC0VAL;    // TODO(code style)
 
 
-#if defined(DEBUG_CAM) && DEBUG_CAM == 1 // Camera Debugging function
+#ifdef DEBUG_CAM // Camera Debugging function
   #include "serial.h"
   #include <stdio.h>
 
@@ -64,10 +64,12 @@ uint16_t ADC0VAL;    // TODO(code style)
 /* Initialize camera-related modules */
 void init_camera(void)
 {
-  void init_GPIO();
-  void init_FTM2();
-  void init_PIT();
-  void init_ADC0();
+  pixcnt = -2;
+  
+  init_GPIO();
+  init_FTM2();
+  init_PIT();
+  init_ADC0();
 }
 
 
@@ -130,7 +132,7 @@ void FTM2_IRQHandler(void)
  */
 void PIT0_IRQHandler(void)
 {
-#if defined(DEBUG_CAM) && DEBUG_CAM == 1 // Camera Debugging check
+#ifdef DEBUG_CAM // Camera Debugging check
   // Increment capture counter so that we can only 
   //    send line data once every ~2 seconds
   capcnt += 1;
@@ -148,7 +150,7 @@ void PIT0_IRQHandler(void)
 
 
 /* Initialization of FTM2 for camera */
-void init_FTM2()
+void init_FTM2(void)
 {
   // Enable module clock
   SIM_SCGC6 |= SIM_SCGC6_FTM2_MASK;
