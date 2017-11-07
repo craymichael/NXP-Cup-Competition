@@ -51,8 +51,8 @@ void initialize(void)
   uart_init();
 
   // Initialize FTMs for PWM
-  InitPWM();
-  InitServoPWM();
+  //InitPWM();
+  //InitServoPWM();
   
   // Initialize camera
   init_camera();

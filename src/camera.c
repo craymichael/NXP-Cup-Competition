@@ -68,8 +68,8 @@ void init_camera(void)
   
   init_GPIO();
   init_FTM2();
-  init_PIT();
   init_ADC0();
+  init_PIT();
 }
 
 
@@ -104,22 +104,22 @@ void FTM2_IRQHandler(void)
       line[pixcnt/2] = ADC0VAL;
     }
     pixcnt += 1;
-    } else if (pixcnt < 2) {
-      if (pixcnt == -1) {
-        GPIOB_PSOR |= (1 << 23); // SI = 1
-      } else if (pixcnt == 1) {
-        GPIOB_PCOR |= (1 << 23); // SI = 0
-        // ADC read
-        line[0] = ADC0VAL;
-      }
-      pixcnt += 1;
-    } else {
-      GPIOB_PCOR |= (1 << 9); // CLK = 0
-      pixcnt = -2; // reset counter
-      // Disable FTM2 interrupts (until PIT0 overflows
-      //   again and triggers another line capture)
-      FTM2_SC &= ~FTM_SC_TOIE_MASK;
+  } else if (pixcnt < 2) {
+    if (pixcnt == -1) {
+      GPIOB_PSOR |= (1 << 23); // SI = 1
+    } else if (pixcnt == 1) {
+      GPIOB_PCOR |= (1 << 23); // SI = 0
+      // ADC read
+      line[0] = ADC0VAL;
     }
+    pixcnt += 1;
+  } else {
+    GPIOB_PCOR |= (1 << 9); // CLK = 0
+    pixcnt = -2; // reset counter
+    // Disable FTM2 interrupts (until PIT0 overflows
+    //   again and triggers another line capture)
+    FTM2_SC &= ~FTM_SC_TOIE_MASK;
+  }
 }
 
 

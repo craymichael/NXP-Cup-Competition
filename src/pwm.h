@@ -29,7 +29,7 @@
 
 void SetDCMotDuty(uint32_t DutyCycle, uint32_t dir);
 void SetServoAngle(uint32_t duty);
-void InitPWM();
-void InitServoPWM();
+void InitPWM(void);
+void InitServoPWM(void);
 
 #endif /* PWM_H_ */

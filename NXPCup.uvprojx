@@ -381,19 +381,9 @@
           <GroupName>Source Group 1</GroupName>
           <Files>
             <File>
-              <FileName>main.cpp</FileName>
-              <FileType>8</FileType>
-              <FilePath>.\src\main.cpp</FilePath>
-            </File>
-            <File>
               <FileName>pwm.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\pwm.h</FilePath>
-            </File>
-            <File>
-              <FileName>pwm.cpp</FileName>
-              <FileType>8</FileType>
-              <FilePath>.\src\pwm.cpp</FilePath>
             </File>
             <File>
               <FileName>serial.h</FileName>
@@ -401,29 +391,39 @@
               <FilePath>.\src\serial.h</FilePath>
             </File>
             <File>
-              <FileName>serial.cpp</FileName>
-              <FileType>8</FileType>
-              <FilePath>.\src\serial.cpp</FilePath>
-            </File>
-            <File>
-              <FileName>camera.cpp</FileName>
-              <FileType>8</FileType>
-              <FilePath>.\src\camera.cpp</FilePath>
-            </File>
-            <File>
               <FileName>camera.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\camera.h</FilePath>
             </File>
             <File>
-              <FileName>control.cpp</FileName>
-              <FileType>8</FileType>
-              <FilePath>.\src\control.cpp</FilePath>
-            </File>
-            <File>
               <FileName>control.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\control.h</FilePath>
+            </File>
+            <File>
+              <FileName>camera.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\camera.c</FilePath>
+            </File>
+            <File>
+              <FileName>control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\control.c</FilePath>
+            </File>
+            <File>
+              <FileName>main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\main.c</FilePath>
+            </File>
+            <File>
+              <FileName>pwm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\pwm.c</FilePath>
+            </File>
+            <File>
+              <FileName>serial.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\serial.c</FilePath>
             </File>
           </Files>
         </Group>
