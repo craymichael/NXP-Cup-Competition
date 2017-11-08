@@ -16,16 +16,21 @@
 #include "serial.h"
 #include "PWM.h"
 #include "camera.h"
-
-#define DEFAULT_SYSTEM_CLOCK (20485760u) // System clock value
-#define BAUD_RATE            (9600u)     // UART Baud Rate
+#include "common.h"
 
 void initialize(void);
 
 
 /* Motors:
+ *   FTM0_CH0 - PTC1 (Dir 1, PWM)
+ *   FTM0_CH1 - PTC2 (Dir 0, PWM)
+ *
+ *   FTM0_CH2 - PTC3 (Dir 1, PWM)
+ *   FTM0_CH3 - PTC4 (Dir 0, PWM)
+ *
  *   J1 right wheel 5,7
  *   J10 left wheel 10,12
+ *
  * Camera:
  *   PTB9              - camera clk
  *   PTB23             - camera SI
@@ -33,10 +38,19 @@ void initialize(void);
  */
 int32_t main(void)
 {
+  uint16_t* line;
+  
   initialize();
 
 #ifdef DEBUG_CAM
   debug_camera();
+#else
+  for(;;)
+  {
+    // Get cemera line scan output
+    get_line(line);
+    // 
+  }
 #endif
   
   return 0;
@@ -51,8 +65,8 @@ void initialize(void)
   uart_init();
 
   // Initialize FTMs for PWM
-  //InitPWM();
-  //InitServoPWM();
+  InitDCMotPWM();
+  InitServoPWM();
   
   // Initialize camera
   init_camera();

@@ -12,22 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef _SERIAL_H_
-#define _SERIAL_H_
+#ifndef _COMMON_H_
+#define _COMMON_H_
 
-#include "MK64F12.h"
-
-#define BAUD_RATE     (9600u)      // Default baud rate 
-#define CHAR_COUNT    (10u)        // Default max. permissible length of a sentence
-#define UART_FLUSH_TX {while(!(UART0_S1 & UART_S1_TDRE_MASK));}
-
-void uart_init(void);
-
-uint8_t uart_getchar(void);
-void uart_putchar(uint8_t ch);
-
-void uart_put(uint8_t* ptr_str);
-void uart_get(uint8_t* ptr_str);
-void putnumU(uint32_t i);
+/* Default System clock value */
+// period = 1/20485760  = 4.8814395e-8
+#define DEFAULT_SYSTEM_CLOCK (20485760u)
 
 #endif

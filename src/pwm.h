@@ -15,21 +15,23 @@
 #ifndef _PWM_H_
 #define _PWM_H_
 
-#define DEFAULT_SYSTEM_CLOCK (20485760u) /* Default System clock value */
-
 // === DC Motor ===
 // PWM frequency
-#define PWM_DCMOT_FREQ (10000u)
+#define PWM_DCMOT_FREQ    (10000u)
+// PWM correction duty
+#define PWM_DCMOT_CORRECT (0u)
 // === Servo Motor ===
 // PWM frequency
-#define PWM_SERVO_FREQ (50u)
+#define PWM_SERVO_FREQ    (50u)
+// PWM correction duty
+#define PWM_SERVO_CORRECT (0u)
 // Maximum and minimum duty
-#define MIN_SERVO_DUTY (5u)
-#define MAX_SERVO_DUTY (10u)
+#define MIN_SERVO_DUTY    (5u)
+#define MAX_SERVO_DUTY    (10u)
 
-void SetDCMotDuty(uint32_t DutyCycle, uint32_t dir);
-void SetServoAngle(uint32_t duty);
-void InitPWM(void);
+void SetDCMotDuty(uint32_t duty, uint32_t dir);
+void SetServoDuty(float duty);
+void InitDCMotPWM(void);
 void InitServoPWM(void);
 
 #endif /* PWM_H_ */

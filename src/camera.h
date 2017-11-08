@@ -19,18 +19,15 @@
 
 // Debug macro -- DEBUG_CAM
 
-// Default System clock value
-// period = 1/20485760  = 4.8814395e-8
-#define DEFAULT_SYSTEM_CLOCK (20485760u)
-
 // Integration time (seconds)
 // Determines how high the camera values are
 // Don't exceed 100ms or the caps will saturate
 // Must be above 1.25 ms based on camera clk 
 //    (camera clk is the mod value set in FTM2)
-#define INTEGRATION_TIME (.0075f)
+#define INTEGRATION_TIME (.0025f)
 
 void init_camera(void);
+void get_line(uint16_t* line_p);
 
 void init_GPIO(void);
 void init_FTM2(void);

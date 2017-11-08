@@ -14,45 +14,54 @@
  */
 #include "MK64F12.h"
 #include "pwm.h"
+#include "common.h"
 
-#define FTM0_MOD_VALUE (DEFAULT_SYSTEM_CLOCK / PWM_DCMOT_FREQ)
-#define FTM3_MOD_VALUE (DEFAULT_SYSTEM_CLOCK / (PWM_SERVO_FREQ * 128u))
+#define FTM0_MOD_VALUE (DEFAULT_SYSTEM_CLOCK / PWM_DCMOT_FREQ - 1u)
+#define FTM3_MOD_VALUE (DEFAULT_SYSTEM_CLOCK / (PWM_SERVO_FREQ * 128u) - 1u)
 
 
 /*
  * Change the Motor Duty Cycle and Frequency
- *   @param DutyCycle: (0 to 100%)
+ *   @param duty: (0 to 100%)
  *   @param dir:       1 for C4 active, else C3 active 
  */
-void SetDCMotDuty(uint32_t DutyCycle, uint32_t dir)
+void SetDCMotDuty(uint32_t duty, uint32_t dir)
 {
   // Calculate the new cutoff value
-  uint16_t mod = (((DEFAULT_SYSTEM_CLOCK / PWM_DCMOT_FREQ) * DutyCycle) / 100u);
+  uint16_t mod = (FTM0_MOD_VALUE * duty) / 100u;
 
   // Set outputs
   if(dir == 1) {
+    // Rear wheel 1
     FTM0_C3V = mod;  // PTC4 (dir 1)
     FTM0_C2V = 0;
+    // Rear wheel 2
+    FTM0_C1V = mod + PWM_DCMOT_CORRECT;  // PTC2 (dir 1)
+    FTM0_C0V = 0;
   } else {
+    // Rear wheel 1
     FTM0_C2V = mod;  // PTC3 (dir 0)
     FTM0_C3V = 0;
+    // Rear wheel 2
+    FTM0_C0V = mod + PWM_DCMOT_CORRECT;  // PTC1 (dir 0)
+    FTM0_C1V = 0;
   }
 }
 
 
 // Duty has to be between 5 and 10%
-void SetServoAngle(uint32_t duty)
+void SetServoDuty(float duty)
 {
-	uint16_t mod = FTM3_MOD_VALUE * duty / 100u;
+	uint16_t mod = (uint16_t)(FTM3_MOD_VALUE * duty) / 100u;
 
-	FTM3_C0V = mod;
+	FTM3_C0V = mod + PWM_SERVO_CORRECT;
 }
 
 
 /*
  * Initialize the FlexTimer for PWM
  */
-void InitPWM()
+void InitDCMotPWM(void)
 {
   // Enable the Clock to the FTM0 Module
   SIM_SCGC6 |= SIM_SCGC6_FTM0_MASK;
@@ -67,6 +76,11 @@ void InitPWM()
   PORTC_PCR3 = PORT_PCR_MUX(0x4) |  // Ch2
                PORT_PCR_DSE_MASK;
   PORTC_PCR4 = PORT_PCR_MUX(0x4) |  // Ch3
+               PORT_PCR_DSE_MASK;
+  
+  PORTC_PCR1 = PORT_PCR_MUX(0x4) |  // Ch0
+               PORT_PCR_DSE_MASK;
+  PORTC_PCR2 = PORT_PCR_MUX(0x4) |  // Ch1
                PORT_PCR_DSE_MASK;
 
   // 39.3.10 Disable Write Protection
@@ -93,6 +107,16 @@ void InitPWM()
   FTM0_C2SC |= FTM_CnSC_MSB_MASK |
                FTM_CnSC_ELSB_MASK;
   FTM0_C2SC &= ~FTM_CnSC_ELSA_MASK;
+  
+  // See Table 39-67,  Edge-aligned PWM, High-true pulses (clear out on match)
+  FTM0_C1SC |= FTM_CnSC_MSB_MASK |
+               FTM_CnSC_ELSB_MASK;
+  FTM0_C1SC &= ~FTM_CnSC_ELSA_MASK;
+
+  // See Table 39-67,  Edge-aligned PWM, Low-true pulses (clear out on match)
+  FTM0_C0SC |= FTM_CnSC_MSB_MASK |
+               FTM_CnSC_ELSB_MASK;
+  FTM0_C0SC &= ~FTM_CnSC_ELSA_MASK;
 
   // 39.3.3 FTM Setup
   // Set prescale value to 1 
@@ -105,7 +129,7 @@ void InitPWM()
 
 /* Initialize FTM3 for servo PWM control
  */
-void InitServoPWM()
+void InitServoPWM(void)
 {
   // Enable FTM1 clock
   SIM_SCGC3 |= SIM_SCGC3_FTM3_MASK;

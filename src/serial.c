@@ -14,6 +14,7 @@
  */
 #include "MK64F12.h"
 #include "serial.h"
+#include "common.h"
 #include <stdio.h>
 
 

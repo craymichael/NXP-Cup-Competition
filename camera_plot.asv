@@ -110,14 +110,7 @@ plot(bintrace);
 binright = bintrace(1:64);
 binleft = bintrace(65:end);
 
-rightzs = find(binright==0);
-leftzs = find(binleft==0);
 
-righti = rightzs(end);
-lefti = leftzs(1) + 64;
-
-text(righti,0,"rline index \rightarrow",'HorizontalAlignment','right');
-text(lefti,0,"\leftarrow lline index");
 
 end %function
 

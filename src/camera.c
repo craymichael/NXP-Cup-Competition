@@ -14,12 +14,13 @@
  */
 #include "MK64F12.h"
 #include "camera.h"
+#include "common.h"
 
 // Pixel counter for camera logic
 // Starts at -2 so that the SI pulse occurs
-//   ADC reads start
-int32_t pixcnt; // TODO(code style)
-// line stores the current array of camera data
+// new_line: whether new line is available from camera
+int32_t pixcnt, new_line; // TODO(code style)
+// line stores the current array of camera data, line_p the prior data
 uint16_t line[128];  // TODO(code style)
 // ADC0VAL holds the current ADC value
 uint16_t ADC0VAL;    // TODO(code style)
@@ -29,8 +30,6 @@ uint16_t ADC0VAL;    // TODO(code style)
   #include "serial.h"
   #include <stdio.h>
 
-  uint32_t capcnt = 0;  // TODO
-
   void debug_camera(void)
   {
     uint8_t str[100];
@@ -38,8 +37,7 @@ uint16_t ADC0VAL;    // TODO(code style)
     for(;;)
     {
       // Every 2 seconds
-      //if (capcnt >= (2/INTEGRATION_TIME)) {
-      if (capcnt >= (500)) {
+      if (new_line) {
         GPIOB_PCOR |= (1 << 22);
 
         // send the array over uart
@@ -53,7 +51,6 @@ uint16_t ADC0VAL;    // TODO(code style)
 
         sprintf((char*)str,"%i\n\r",-2); // end value
         uart_put(str);
-        capcnt = 0;
         GPIOB_PSOR |= (1 << 22);
       }
     }
@@ -65,6 +62,7 @@ uint16_t ADC0VAL;    // TODO(code style)
 void init_camera(void)
 {
   pixcnt = -2;
+  new_line = 0;
   
   init_GPIO();
   init_FTM2();
@@ -73,8 +71,25 @@ void init_camera(void)
 }
 
 
+void get_line(uint16_t* line_p)
+{
+  while(!new_line); // wait until new line available
+  
+  // Make sure line doesn't get messed with
+  NVIC_DisableIRQ(FTM2_IRQn);
+  
+  for(uint32_t i = 0; i < 128; ++i) { // copy line
+    line_p[i] = line[i];
+  }
+  
+  // Resume camera captures
+  NVIC_EnableIRQ(FTM2_IRQn);
+}
+
+
 /* ADC0 Conversion Complete */
-void ADC0_IRQHandler(void) {
+void ADC0_IRQHandler(void)
+{
   // Reading ADC0_RA clears the conversion complete flag
   ADC0VAL = ADC0_RA;
 }
@@ -95,29 +110,31 @@ void FTM2_IRQHandler(void)
   
   // Toggle clk
   GPIOB_PTOR |= (1 << 9);
+  
+  new_line = 0; // new line unavailable
 
   // Line capture logic
-  if ((pixcnt >= 2) && (pixcnt < 256)) {
-    if (!GPIOB_PDOR) {    // check for falling edge
-      // ADC read (note that integer division is 
-      //  occurring here for indexing the array)
-      line[pixcnt/2] = ADC0VAL;
-    }
-    pixcnt += 1;
-  } else if (pixcnt < 2) {
-    if (pixcnt == -1) {
-      GPIOB_PSOR |= (1 << 23); // SI = 1
-    } else if (pixcnt == 1) {
-      GPIOB_PCOR |= (1 << 23); // SI = 0
-      // ADC read
-      line[0] = ADC0VAL;
+  if (pixcnt < 256) {
+    switch(pixcnt) {
+      case -1: // pixcnt < 2
+        GPIOB_PSOR |= (1 << 23); // SI = 1
+        break;
+      case 1:  // pixcnt < 2
+        GPIOB_PCOR |= (1 << 23); // SI = 0
+        // ADC read
+        line[0] = ADC0VAL;
+        break;
+      default: // 2 <= pixcnt < 256
+        if (!GPIOB_PDOR) { // check for falling edge
+          line[pixcnt/2] = ADC0VAL; // ADC read
+        }
+        break;
     }
     pixcnt += 1;
   } else {
-    GPIOB_PCOR |= (1 << 9); // CLK = 0
-    pixcnt = -2; // reset counter
-    // Disable FTM2 interrupts (until PIT0 overflows
-    //   again and triggers another line capture)
+    pixcnt = -2;  // reset counter
+    new_line = 1; // new line available
+    // Disable FTM2 interrupts (until PIT0 overflows and triggers another line capture)
     FTM2_SC &= ~FTM_SC_TOIE_MASK;
   }
 }
@@ -132,12 +149,6 @@ void FTM2_IRQHandler(void)
  */
 void PIT0_IRQHandler(void)
 {
-#ifdef DEBUG_CAM // Camera Debugging check
-  // Increment capture counter so that we can only 
-  //    send line data once every ~2 seconds
-  capcnt += 1;
-#endif
-
   // Clear interrupt
   PIT_TFLG0 |= PIT_TFLG_TIF_MASK;
 
@@ -220,7 +231,7 @@ void init_PIT(void)
 
   // PIT clock frequency is the system clock
   // Load the value that the timer will count down from
-  PIT_LDVAL0 = INTEGRATION_TIME * DEFAULT_SYSTEM_CLOCK;
+  PIT_LDVAL0 = INTEGRATION_TIME * DEFAULT_SYSTEM_CLOCK - 1u;
 
   // Enable timer interrupts
   PIT_TCTRL0 |= PIT_TCTRL_TIE_MASK;  
