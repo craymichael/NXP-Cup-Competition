@@ -24,6 +24,8 @@ void initialize(void);
 
 
 /* Motors:
+ *   Rear:
+ *     3.3v -> J10(3) H-Bridge Enable
  *   Left Rear:
  *     FTM0_CH0 - PTC1 (Dir 1, PWM) -> J10(12) H-Bridge B IN1
  *     FTM0_CH1 - PTC2 (Dir 0, PWM) -> J10(10) H-Bridge B IN2
@@ -40,18 +42,18 @@ void initialize(void);
  */
 int32_t main(void)
 {
-  uint16_t* line;
+  uint16_t line[N_CAM_PNTS];
   struct Result pnts;
   float steer_delta, steer_duty = 7.5; //TODO
   
   initialize();
 
 #ifdef DEBUG_CAM
-  debug_camera();
+  //debug_camera();
 #endif
 
   // Straight line
-  SetDCMotDuty(20, 1);  // Slow pls
+  SetDCMotDuty(50, 0);  // Slow pls
   
   // Camera
   for(;;)
@@ -65,7 +67,7 @@ int32_t main(void)
     
     // Change steering duty
     steer_duty += steer_delta;
-    SetServoDuty(steer_duty);
+    //SetServoDuty(steer_duty);
   }
   
   return 0;
