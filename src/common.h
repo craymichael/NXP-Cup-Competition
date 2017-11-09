@@ -19,4 +19,7 @@
 // period = 1/20485760  = 4.8814395e-8
 #define DEFAULT_SYSTEM_CLOCK (20485760u)
 
+// Number of data points the camera outputs
+#define N_CAM_PNTS           (128)
+
 #endif

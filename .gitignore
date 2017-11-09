@@ -31,6 +31,7 @@
 *.out
 *.app
 
-# Keil Project Directories
+# Keil
 Objects/
 Listings/
+*.TMP

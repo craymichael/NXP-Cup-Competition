@@ -21,7 +21,7 @@
 // new_line: whether new line is available from camera
 int32_t pixcnt, new_line; // TODO(code style)
 // line stores the current array of camera data, line_p the prior data
-uint16_t line[128];  // TODO(code style)
+uint16_t line[N_CAM_PNTS];  // TODO(code style)
 // ADC0VAL holds the current ADC value
 uint16_t ADC0VAL;    // TODO(code style)
 
@@ -78,7 +78,7 @@ void get_line(uint16_t* line_p)
   // Make sure line doesn't get messed with
   NVIC_DisableIRQ(FTM2_IRQn);
   
-  for(uint32_t i = 0; i < 128; ++i) { // copy line
+  for(uint32_t i = 0; i < N_CAM_PNTS; ++i) { // copy line
     line_p[i] = line[i];
   }
   
@@ -114,7 +114,7 @@ void FTM2_IRQHandler(void)
   new_line = 0; // new line unavailable
 
   // Line capture logic
-  if (pixcnt < 256) {
+  if (pixcnt < (N_CAM_PNTS * 2)) {
     switch(pixcnt) {
       case -1: // pixcnt < 2
         GPIOB_PSOR |= (1 << 23); // SI = 1

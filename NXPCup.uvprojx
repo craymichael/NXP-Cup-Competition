@@ -430,6 +430,16 @@
               <FileType>5</FileType>
               <FilePath>.\src\common.h</FilePath>
             </File>
+            <File>
+              <FileName>algorithm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\algorithm.c</FilePath>
+            </File>
+            <File>
+              <FileName>algorithm.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\algorithm.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

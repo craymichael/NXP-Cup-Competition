@@ -31,6 +31,7 @@
 
 void SetDCMotDuty(uint32_t duty, uint32_t dir);
 void SetServoDuty(float duty);
+
 void InitDCMotPWM(void);
 void InitServoPWM(void);
 

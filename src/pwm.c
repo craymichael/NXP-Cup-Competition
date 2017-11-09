@@ -28,7 +28,9 @@
 void SetDCMotDuty(uint32_t duty, uint32_t dir)
 {
   // Calculate the new cutoff value
-  uint16_t mod = (FTM0_MOD_VALUE * duty) / 100u;
+  uint16_t mod =  (FTM0_MOD_VALUE * duty) / 100u,
+           modc = (FTM0_MOD_VALUE * (duty + PWM_DCMOT_CORRECT)) / 100u;
+  
 
   // Set outputs
   if(dir == 1) {
@@ -36,14 +38,14 @@ void SetDCMotDuty(uint32_t duty, uint32_t dir)
     FTM0_C3V = mod;  // PTC4 (dir 1)
     FTM0_C2V = 0;
     // Rear wheel 2
-    FTM0_C1V = mod + PWM_DCMOT_CORRECT;  // PTC2 (dir 1)
+    FTM0_C1V = modc; // PTC2 (dir 1)
     FTM0_C0V = 0;
   } else {
     // Rear wheel 1
     FTM0_C2V = mod;  // PTC3 (dir 0)
     FTM0_C3V = 0;
     // Rear wheel 2
-    FTM0_C0V = mod + PWM_DCMOT_CORRECT;  // PTC1 (dir 0)
+    FTM0_C0V = modc; // PTC1 (dir 0)
     FTM0_C1V = 0;
   }
 }
@@ -52,9 +54,16 @@ void SetDCMotDuty(uint32_t duty, uint32_t dir)
 // Duty has to be between 5 and 10%
 void SetServoDuty(float duty)
 {
+  duty += PWM_SERVO_CORRECT;
+  
+  // Safety measure
+  if(duty < MIN_SERVO_DUTY || duty > MAX_SERVO_DUTY) {
+    return;
+  }
+  
 	uint16_t mod = (uint16_t)(FTM3_MOD_VALUE * duty) / 100u;
 
-	FTM3_C0V = mod + PWM_SERVO_CORRECT;
+	FTM3_C0V = mod;
 }
 
 

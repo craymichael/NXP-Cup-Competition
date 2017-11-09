@@ -12,4 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+#ifndef _CONTROL_H_
+#define _CONTROL_H_
+
+#include "algorithm.h"
+
+float delta_duty(struct Result pnts);
+
+#endif
