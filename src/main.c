@@ -52,7 +52,7 @@ int32_t main(void)
   initialize();
 
 #ifdef DEBUG_CAM
-	uint8_t str[120];
+  uint8_t str[120];
   //debug_camera();
 #endif
 
@@ -71,19 +71,19 @@ int32_t main(void)
     
     // Change steering duty
     steer_duty += steer_delta;
-		if (steer_duty < (MIN_SERVO_DUTY + 1.2)) {
-			steer_duty = MIN_SERVO_DUTY + 1.2;
-		} else if (steer_duty > (MAX_SERVO_DUTY - 1.2)) {
-			steer_duty = MAX_SERVO_DUTY - 1.2;
-		}
-		SetServoDuty(steer_duty);
+    if (steer_duty < (MIN_SERVO_DUTY + 1.2)) {
+      steer_duty = MIN_SERVO_DUTY + 1.2;
+    } else if (steer_duty > (MAX_SERVO_DUTY - 1.2)) {
+      steer_duty = MAX_SERVO_DUTY - 1.2;
+    }
+    SetServoDuty(steer_duty);
 
 #ifdef DEBUG_CAM
-		/*sprintf((char*)str, "left point: %u, right point: %u\r\n", pnts.l_pnt, pnts.r_pnt);
-		uart_put(str);
-		sprintf((char*)str, "steer_duty: %f, steer_delta: %f\r\n", steer_duty, steer_delta);
-		uart_put(str);
-		for(int i=0; i<5000000;++i);*/
+    /*sprintf((char*)str, "left point: %u, right point: %u\r\n", pnts.l_pnt, pnts.r_pnt);
+    uart_put(str);
+    sprintf((char*)str, "steer_duty: %f, steer_delta: %f\r\n", steer_duty, steer_delta);
+    uart_put(str);
+    for(int i=0; i<5000000;++i);*/
 #endif
   }
   

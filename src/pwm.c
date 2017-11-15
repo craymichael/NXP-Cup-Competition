@@ -61,9 +61,9 @@ void SetServoDuty(float duty)
     return;
   }
   
-	uint16_t mod = (uint16_t)(FTM3_MOD_VALUE * duty) / 100u;
+  uint16_t mod = (uint16_t)(FTM3_MOD_VALUE * duty) / 100u;
 
-	FTM3_C0V = mod;
+  FTM3_C0V = mod;
 }
 
 

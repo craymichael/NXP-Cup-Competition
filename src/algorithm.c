@@ -25,8 +25,8 @@ struct Result find_edges(uint16_t* line)
 {
   struct Result r = {0,N_CAM_PNTS-1};
   uint32_t max,
-					 midpoint = N_CAM_PNTS / 2;
-	float thresh;
+           midpoint = N_CAM_PNTS / 2;
+  float thresh;
   
   // Smooth data (5-point average) & find max
   line[0] = (line[0] + line[1] + line[2]) / 3;
@@ -42,64 +42,64 @@ struct Result find_edges(uint16_t* line)
   max = MAX(line[N_CAM_PNTS-2],max);
   line[N_CAM_PNTS-1] = (line[N_CAM_PNTS-3] + line[N_CAM_PNTS-2] + line[N_CAM_PNTS-1]) / 3;
   max = MAX(line[N_CAM_PNTS-1],max);
-	
-	// Set theshold using max
-	thresh = (float)max * CAM_THRESH;
-	
+  
+  // Set theshold using max
+  thresh = (float)max * CAM_THRESH;
+  
   // Find left & right points in "binarized" data
-	if (line[midpoint-1] < thresh || line[midpoint] < thresh) // if either midpoint is 0
-	{
-		for(uint32_t i=0; i<midpoint; ++i)
-		{
-			// Check if value is interpreted as 1 (towards left)
-			if(line[midpoint+i] >= thresh) {
-				r.r_pnt = midpoint+i;
-				// Find left point
-				for(uint32_t j=midpoint+i+1; j<N_CAM_PNTS; ++j)
-				{
-					// Check if value is interpreted as 0
-					if(line[j] < thresh) {
-						r.l_pnt = j;
-						break;
-					}
-				}
-				break;
-			}
-			// Check if value is interpreted as 1 (towards right)
-			if(line[midpoint-i-1] >= thresh) {
-				r.l_pnt = midpoint-i-1;
-				// Find right point
-				for(int32_t j=midpoint-i-2; j>=0; --j)
-				{
-					// Check if value is interpreted as 0
-					if(line[j] < thresh) {
-						r.r_pnt = (uint32_t)j;
-						break;
-					}
-				}
-				break;
-			}
-		}
-	} else 
-	{
-		// Find points moving out from center
-		for(int32_t i=midpoint-1; i >= 0; --i)
-		{
-			// Check if value is interpreted as 0
-			if(line[i] < thresh) {
-				r.r_pnt = (uint32_t)i;
-				break;
-			}
-		}
-		for(uint32_t i=midpoint; i < N_CAM_PNTS; ++i)
-		{
-			// Check if value is interpreted as 0
-			if(line[i] < thresh) {
-				r.l_pnt = i;
-				break;
-			}
-		}
-	}
+  if (line[midpoint-1] < thresh || line[midpoint] < thresh) // if either midpoint is 0
+  {
+    for(uint32_t i=0; i<midpoint; ++i)
+    {
+      // Check if value is interpreted as 1 (towards left)
+      if(line[midpoint+i] >= thresh) {
+        r.r_pnt = midpoint+i;
+        // Find left point
+        for(uint32_t j=midpoint+i+1; j<N_CAM_PNTS; ++j)
+        {
+          // Check if value is interpreted as 0
+          if(line[j] < thresh) {
+            r.l_pnt = j;
+            break;
+          }
+        }
+        break;
+      }
+      // Check if value is interpreted as 1 (towards right)
+      if(line[midpoint-i-1] >= thresh) {
+        r.l_pnt = midpoint-i-1;
+        // Find right point
+        for(int32_t j=midpoint-i-2; j>=0; --j)
+        {
+          // Check if value is interpreted as 0
+          if(line[j] < thresh) {
+            r.r_pnt = (uint32_t)j;
+            break;
+          }
+        }
+        break;
+      }
+    }
+  } else 
+  {
+    // Find points moving out from center
+    for(int32_t i=midpoint-1; i >= 0; --i)
+    {
+      // Check if value is interpreted as 0
+      if(line[i] < thresh) {
+        r.r_pnt = (uint32_t)i;
+        break;
+      }
+    }
+    for(uint32_t i=midpoint; i < N_CAM_PNTS; ++i)
+    {
+      // Check if value is interpreted as 0
+      if(line[i] < thresh) {
+        r.l_pnt = i;
+        break;
+      }
+    }
+  }
   
   return r;
 }
