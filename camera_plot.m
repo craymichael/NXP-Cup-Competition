@@ -19,7 +19,7 @@
 function plot_cams 
 
 %Send over bluetooth or serial
-serialPort = 'COM8';
+serialPort = 'COM55';
 serialObject = serial(serialPort);
 %configure serial connection
 serialObject.BaudRate = 9600; %(Default)
@@ -116,8 +116,8 @@ leftzs = find(binleft==0);
 righti = rightzs(end);
 lefti = leftzs(1) + 64;
 
-text(righti,0,"rline index \rightarrow",'HorizontalAlignment','right');
-text(lefti,0,"\leftarrow lline index");
+text(righti,0,'rline index \rightarrow','HorizontalAlignment','right');
+text(lefti,0,'\leftarrow lline index');
 
 end %function
 

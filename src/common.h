@@ -22,4 +22,10 @@
 // Number of data points the camera outputs
 #define N_CAM_PNTS           (128)
 
+// "FUNCTIONS"
+// Return max of A and B
+#define MAX(A,B) (A < B ? B : A)
+// Return min of A and B
+#define MIN(A,B) (A < B ? A : B)
+
 #endif

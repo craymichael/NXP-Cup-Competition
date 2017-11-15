@@ -19,19 +19,22 @@
 #include "common.h"
 #include "control.h"
 #include "algorithm.h"
+#include <stdio.h>
 
 void initialize(void);
 
 
 /* Motors:
+ *   1: forwards
+ *   0: backwards
  *   Rear:
- *     3.3v -> J10(3) H-Bridge Enable
- *   Left Rear:
- *     FTM0_CH0 - PTC1 (Dir 1, PWM) -> J10(12) H-Bridge B IN1
- *     FTM0_CH1 - PTC2 (Dir 0, PWM) -> J10(10) H-Bridge B IN2
+ *     J9(4) 3.3v -> J10(3) H-Bridge Enable
  *   Right Rear:
- *     FTM0_CH2 - PTC3 (Dir 1, PWM) -> J1(5) H-Bridge A IN1
- *     FTM0_CH3 - PTC4 (Dir 0, PWM) -> J1(7) H-Bridge A IN2
+ *     FTM0_CH0 - PTC1 (Dir 0, PWM) -> J1(7) H-Bridge A IN2
+ *     FTM0_CH1 - PTC2 (Dir 1, PWM) -> J1(5) H-Bridge A IN1
+ *   Left Rear:
+ *     FTM0_CH2 - PTC3 (Dir 0, PWM) -> J10(10) H-Bridge B IN2
+ *     FTM0_CH3 - PTC4 (Dir 1, PWM) -> J10(12) H-Bridge B IN1
  *   Servo:
  *     FTM3_CH0 - PTD0 (PWM) -> Servo (White)
  *
@@ -49,11 +52,12 @@ int32_t main(void)
   initialize();
 
 #ifdef DEBUG_CAM
+	uint8_t str[120];
   //debug_camera();
 #endif
 
   // Straight line
-  SetDCMotDuty(50, 0);  // Slow pls
+  SetDCMotDuty(30, 1);  // Slow pls TODO 30 min do
   
   // Camera
   for(;;)
@@ -67,7 +71,20 @@ int32_t main(void)
     
     // Change steering duty
     steer_duty += steer_delta;
-    //SetServoDuty(steer_duty);
+		if (steer_duty < (MIN_SERVO_DUTY + 1.2)) {
+			steer_duty = MIN_SERVO_DUTY + 1.2;
+		} else if (steer_duty > (MAX_SERVO_DUTY - 1.2)) {
+			steer_duty = MAX_SERVO_DUTY - 1.2;
+		}
+		SetServoDuty(steer_duty);
+
+#ifdef DEBUG_CAM
+		/*sprintf((char*)str, "left point: %u, right point: %u\r\n", pnts.l_pnt, pnts.r_pnt);
+		uart_put(str);
+		sprintf((char*)str, "steer_duty: %f, steer_delta: %f\r\n", steer_duty, steer_delta);
+		uart_put(str);
+		for(int i=0; i<5000000;++i);*/
+#endif
   }
   
   return 0;

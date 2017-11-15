@@ -18,12 +18,15 @@
 
 
 // A simple control algorithm
+//   avg centered distance about 20?
 float delta_duty(struct Result pnts)
 {
+	int32_t ldist = pnts.l_pnt - N_CAM_PNTS/2,
+				  rdist = N_CAM_PNTS/2 - pnts.r_pnt;
   // If the distance to the right point is further than to the left...
-  if(N_CAM_PNTS/2 - pnts.r_pnt > pnts.l_pnt - N_CAM_PNTS/2) {
-    return 0.1;
+  if(rdist > ldist) {
+    return 0.005f;
   } else {
-    return -0.1;
+    return -0.005f;
   }
 }

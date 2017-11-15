@@ -38,7 +38,7 @@ uint16_t ADC0VAL;    // TODO(code style)
     {
       // Every 2 seconds
       if (new_line) {
-        GPIOB_PCOR |= (1 << 22);
+        GPIOB_PCOR = (1 << 22);
 
         // send the array over uart
         sprintf((char*)str,"%i\n\r",-1); // start value
@@ -51,7 +51,7 @@ uint16_t ADC0VAL;    // TODO(code style)
 
         sprintf((char*)str,"%i\n\r",-2); // end value
         uart_put(str);
-        GPIOB_PSOR |= (1 << 22);
+        GPIOB_PSOR = (1 << 22);
       }
     }
   }
@@ -109,7 +109,7 @@ void FTM2_IRQHandler(void)
   FTM2_SC &= ~FTM_SC_TOF_MASK;
   
   // Toggle clk
-  GPIOB_PTOR |= (1 << 9);
+  GPIOB_PTOR = (1 << 9);
   
   new_line = 0; // new line unavailable
 
@@ -117,15 +117,15 @@ void FTM2_IRQHandler(void)
   if (pixcnt < (N_CAM_PNTS * 2)) {
     switch(pixcnt) {
       case -1: // pixcnt < 2
-        GPIOB_PSOR |= (1 << 23); // SI = 1
+        GPIOB_PSOR = (1 << 23); // SI = 1
         break;
       case 1:  // pixcnt < 2
-        GPIOB_PCOR |= (1 << 23); // SI = 0
+        GPIOB_PCOR = (1 << 23); // SI = 0
         // ADC read
         line[0] = ADC0VAL;
         break;
       default: // 2 <= pixcnt < 256
-        if (!GPIOB_PDOR) { // check for falling edge
+        if (!(GPIOB_PDOR & (1 << 9))) { // check for falling edge
           line[pixcnt/2] = ADC0VAL; // ADC read
         }
         break;
@@ -257,9 +257,11 @@ void init_GPIO(void)
   // Enable LED and GPIO so we can see results
   SIM_SCGC5 |= SIM_SCGC5_PORTB_MASK;
 
+#ifdef DEBUG_CAM
   PORTB_PCR22 |= PORT_PCR_MUX(0x1); // Mux Red
   GPIOB_PDDR |= (1 << 22); // Red output
   GPIOB_PDOR |= (1 << 22); // Red off
+#endif
 
   PORTB_PCR9 |= PORT_PCR_MUX(0x1); // Mux clk
   GPIOB_PDDR |= (1 << 9); // Clk output
