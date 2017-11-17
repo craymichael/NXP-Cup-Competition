@@ -18,7 +18,9 @@
 #include "MK64F12.h"
 
 // Threshold (percentage of max value of line that is interpreted as 0 or black)
-#define CAM_THRESH (0.85f)
+#define CAM_THRESH     (0.85f)
+// No track threshold
+#define NOTRACK_THRESH (10000u)
 
 struct Result {
   uint32_t l_pnt;

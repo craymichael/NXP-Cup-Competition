@@ -43,6 +43,14 @@ struct Result find_edges(uint16_t* line)
   line[N_CAM_PNTS-1] = (line[N_CAM_PNTS-3] + line[N_CAM_PNTS-2] + line[N_CAM_PNTS-1]) / 3;
   max = MAX(line[N_CAM_PNTS-1],max);
   
+  // Detect if car may be off the track
+  if (max < NOTRACK_THRESH)
+  {
+    r.l_pnt = 0;
+    r.r_pnt = 0;
+    return r;
+  }
+  
   // Set theshold using max
   thresh = (float)max * CAM_THRESH;
   

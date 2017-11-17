@@ -48,7 +48,7 @@ int32_t main(void)
   uint16_t line[N_CAM_PNTS];
   struct Result pnts;
   float steer_delta, steer_duty = 7.5; //TODO
-  PID pid;
+  PID servo_pid, dc_pid;
   
   initialize();
 
@@ -58,7 +58,8 @@ int32_t main(void)
 #endif
 
   // Straight line
-  SetDCMotDuty(40, 1);  // Slow pls TODO 30 MIN do
+  update_pid(&dc_pid, 40, dc_pid.current_val, 0.0f, 100.0f);
+  SetDCMotDuty(dc_pid.current_val, 1);  // Slow pls TODO 30 MIN do
   
   // Camera
   for(;;)
@@ -67,22 +68,31 @@ int32_t main(void)
     get_line(line);
     // Detect line positions
     pnts = find_edges(line);
-    // Make control adjustments
-    /*steer_delta = delta_duty(pnts);
     
-    // Change steering duty
-    steer_duty += steer_delta;
-    if (steer_duty < (MIN_SERVO_DUTY + 1.2)) {
-      steer_duty = MIN_SERVO_DUTY + 1.2;
-    } else if (steer_duty > (MAX_SERVO_DUTY - 1.2)) {
-      steer_duty = MAX_SERVO_DUTY - 1.2;
+    update_pid(&dc_pid, 40, dc_pid.current_val, 0.0f, 100.0f);
+    SetDCMotDuty(dc_pid.current_val, 1);
+    
+    // Off track safety measure
+    if (!pnts.l_pnt && !pnts.r_pnt)
+    {
+      GPIOB_PCOR = (1 << 22); // LED
+      while(dc_pid.current_val)
+      {
+        update_pid(&dc_pid, 0, dc_pid.current_val, 0.0f, 100.0f);
+        SetDCMotDuty(dc_pid.current_val, 1);
+      }
+      break;
     }
-    SetServoDuty(steer_duty);*/
+    
+    // DC
+    // TODO
+    
+    // Make control adjustments Change steering duty (TODO init servo_pid)
     if (servo_ready())
     {
       steer_duty = SERVO_SCALAR * ((float)(pnts.r_pnt + pnts.l_pnt) / 2.0f - N_CAM_PNTS + 1) * -1.0f + SERVO_BIAS;  // midpoint
-      update_pid(&pid, steer_duty, pid.current_val, (float)MIN_SERVO_DUTY, (float)MAX_SERVO_DUTY);
-      SetServoDuty(pid.current_val);
+      update_pid(&servo_pid, steer_duty, servo_pid.current_val, (float)MIN_SERVO_DUTY, (float)MAX_SERVO_DUTY);
+      SetServoDuty(servo_pid.current_val);
     }
     
 #ifdef DEBUG_CAM
