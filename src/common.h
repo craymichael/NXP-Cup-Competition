@@ -24,8 +24,21 @@
 
 // "FUNCTIONS"
 // Return max of A and B
-#define MAX(A,B) (A < B ? B : A)
+#define MAX(A,B)  (A < B ? B : A)
 // Return min of A and B
-#define MIN(A,B) (A < B ? A : B)
+#define MIN(A,B)  (A < B ? A : B)
+// Clip the value
+#define CLIP(V,MINV,MAXV) { \
+  if(V < MINV)              \
+    V = MINV;               \
+  else if (V > MAXV)        \
+    V = MAXV;               \
+}
+// PWM Conversion factors
+#include "pwm.h"
+// Servo:
+// Conversion => CAM_OUT * SERVO SCALAR + SERVO_BIAS
+#define SERVO_SCALAR ((float)MIN_SERVO_DUTY / (float)(N_CAM_PNTS-1))
+#define SERVO_BIAS   ((float)MIN_SERVO_DUTY)
 
 #endif

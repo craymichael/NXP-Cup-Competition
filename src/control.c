@@ -30,3 +30,34 @@ float delta_duty(struct Result pnts)
     return -0.005f;
   }
 }
+
+
+/* 
+ * pid*:     Pointer to PID instance
+ * setpoint: Desired thing (target)
+ * actpoint: Actual thing
+ */
+void update_pid(PID* pid, float setpoint, float actpoint, float min, float max)
+{
+  float error, derivative;
+  
+  // Compute error
+  error = setpoint - actpoint;
+  
+  // Update integral value
+  pid->integral += error;
+  
+  // Compute derivative
+  derivative = error - pid->prev_error;
+  
+  // Update output
+  pid->current_val += KP * error +         // Proportion
+                      KI * pid->integral + // Integral
+                      KD * derivative;     // Derivative
+  
+  // Clip output
+  CLIP(pid->current_val, min, max);
+  
+  // Save error
+  pid->prev_error = error;
+}

@@ -48,6 +48,7 @@ int32_t main(void)
   uint16_t line[N_CAM_PNTS];
   struct Result pnts;
   float steer_delta, steer_duty = 7.5; //TODO
+  PID pid;
   
   initialize();
 
@@ -57,7 +58,7 @@ int32_t main(void)
 #endif
 
   // Straight line
-  SetDCMotDuty(30, 1);  // Slow pls TODO 30 min do
+  SetDCMotDuty(40, 1);  // Slow pls TODO 30 MIN do
   
   // Camera
   for(;;)
@@ -67,7 +68,7 @@ int32_t main(void)
     // Detect line positions
     pnts = find_edges(line);
     // Make control adjustments
-    steer_delta = delta_duty(pnts);
+    /*steer_delta = delta_duty(pnts);
     
     // Change steering duty
     steer_duty += steer_delta;
@@ -76,8 +77,14 @@ int32_t main(void)
     } else if (steer_duty > (MAX_SERVO_DUTY - 1.2)) {
       steer_duty = MAX_SERVO_DUTY - 1.2;
     }
-    SetServoDuty(steer_duty);
-
+    SetServoDuty(steer_duty);*/
+    if (servo_ready())
+    {
+      steer_duty = SERVO_SCALAR * ((float)(pnts.r_pnt + pnts.l_pnt) / 2.0f - N_CAM_PNTS + 1) * -1.0f + SERVO_BIAS;  // midpoint
+      update_pid(&pid, steer_duty, pid.current_val, (float)MIN_SERVO_DUTY, (float)MAX_SERVO_DUTY);
+      SetServoDuty(pid.current_val);
+    }
+    
 #ifdef DEBUG_CAM
     /*sprintf((char*)str, "left point: %u, right point: %u\r\n", pnts.l_pnt, pnts.r_pnt);
     uart_put(str);

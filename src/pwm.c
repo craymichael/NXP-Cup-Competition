@@ -12,12 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "MK64F12.h"
+#include <MK64F12.h>
 #include "pwm.h"
 #include "common.h"
 
 #define FTM0_MOD_VALUE (DEFAULT_SYSTEM_CLOCK / PWM_DCMOT_FREQ - 1u)
 #define FTM3_MOD_VALUE (DEFAULT_SYSTEM_CLOCK / (PWM_SERVO_FREQ * 128u) - 1u)
+
+// Whether servo can steer
+uint32_t can_steer = 0;
 
 
 /*
@@ -56,6 +59,9 @@ void SetServoDuty(float duty)
 {
   duty += PWM_SERVO_CORRECT;
   
+  // Negate boolean
+  can_steer = 0;
+  
   // Safety measure
   if(duty < MIN_SERVO_DUTY || duty > MAX_SERVO_DUTY) {
     return;
@@ -64,6 +70,21 @@ void SetServoDuty(float duty)
   uint16_t mod = (uint16_t)(FTM3_MOD_VALUE * duty) / 100u;
 
   FTM3_C0V = mod;
+}
+
+
+void FTM3_IRQHandler(void)
+{
+  // Clear flag
+  FTM3_SC &= ~FTM_SC_TOF_MASK;
+  
+  can_steer = 1;
+}
+
+
+uint32_t servo_ready(void)
+{
+  return can_steer;
 }
 
 
@@ -166,7 +187,7 @@ void InitServoPWM(void)
   // 39.3.6 Set the Status and Control of both channels
   // Used to configure mode, edge and level selection
   // See Table 39-67,  Edge-aligned PWM, High-true pulses (clear out on match)
-  FTM3_C0SC |= FTM_CnSC_MSB_MASK |
+  FTM3_C0SC |= FTM_CnSC_MSB_MASK  |
                FTM_CnSC_ELSB_MASK;
   FTM3_C0SC &= ~FTM_CnSC_ELSA_MASK;
 
@@ -174,6 +195,9 @@ void InitServoPWM(void)
   // Set prescale value to 1 
   // Chose system clock source
   // Timer Overflow Interrupt Enable
-  FTM3_SC = FTM_SC_PS(0x7) |
-            FTM_SC_CLKS(0x1);
+  FTM3_SC = FTM_SC_PS(0x7)   |
+            FTM_SC_CLKS(0x1) |
+            FTM_SC_TOIE_MASK;
+  // NVIC pls
+  NVIC_EnableIRQ(FTM3_IRQn);
 }

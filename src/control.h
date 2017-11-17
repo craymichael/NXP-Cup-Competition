@@ -17,6 +17,19 @@
 
 #include "algorithm.h"
 
+typedef struct PID
+{
+  float prev_error;      // n-1 error
+  float current_val; // Current value
+  float integral;    // integral value
+} PID;
+
+// Gains            DEFAULTS
+#define KP (0.65f)  // 0.5f
+#define KI (0.25f)  // 0.1f
+#define KD (0.5f) // 0.25f
+
 float delta_duty(struct Result pnts);
+void update_pid(PID* pid, float setpoint, float actpoint, float min, float max);
 
 #endif
