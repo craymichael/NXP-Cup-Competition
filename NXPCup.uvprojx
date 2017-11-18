@@ -336,7 +336,7 @@
               <MiscControls>-DDEBUG_CAM</MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>C:\Users\Zach\Documents\gsl-2.4</IncludePath>
+              <IncludePath></IncludePath>
             </VariousControls>
           </Cads>
           <Aads>

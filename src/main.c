@@ -47,13 +47,12 @@ int32_t main(void)
 {
   uint16_t line[N_CAM_PNTS];
   struct Result pnts;
-  float steer_delta, steer_duty = 7.5; //TODO
+  float steer_duty = 7.5; //TODO
   PID servo_pid, dc_pid;
   
   initialize();
 
-#ifdef DEBUG_CAM
-  uint8_t str[120];
+#ifdef DEBUG_CAM // TODO remove DDEBUG_CAM macro from compilation line for comp.
   //debug_camera();
 #endif
 
@@ -76,7 +75,7 @@ int32_t main(void)
     // TODO: move to state handling logic
     if (!pnts.l_pnt && !pnts.r_pnt)
     {
-      GPIOB_PCOR = (1 << 22); // LED
+      GPIOB_PCOR = (1 << 22); // Red LED
       while(dc_pid.current_val)
       {
         update_pid(&dc_pid, 0, dc_pid.current_val, 0.0f, 100.0f);
@@ -97,12 +96,13 @@ int32_t main(void)
       SetServoDuty(servo_pid.current_val);
     }
     
-#ifdef DEBUG_CAM
-    /*sprintf((char*)str, "left point: %u, right point: %u\r\n", pnts.l_pnt, pnts.r_pnt);
+#ifdef DEBUG
+    uint8_t str[120];
+    sprintf((char*)str, "left point: %u, right point: %u\r\n", pnts.l_pnt, pnts.r_pnt);
     uart_put(str);
-    sprintf((char*)str, "steer_duty: %f, steer_delta: %f\r\n", steer_duty, steer_delta);
+    sprintf((char*)str, "steer_duty: %f\r\n", steer_duty);
     uart_put(str);
-    for(int i=0; i<5000000;++i);*/
+    for(int i=0; i<5000000;++i);
 #endif
   }
   
