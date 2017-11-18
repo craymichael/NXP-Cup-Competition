@@ -57,18 +57,17 @@ void SetDCMotDuty(uint32_t duty, uint32_t dir)
 // Duty has to be between 5 and 10%
 void SetServoDuty(float duty)
 {
-  duty += PWM_SERVO_CORRECT;
+  uint16_t mod;
   
   // Negate boolean
   can_steer = 0;
   
   // Safety measure
-  if(duty < MIN_SERVO_DUTY || duty > MAX_SERVO_DUTY) {
+  if(duty < MIN_SERVO_DUTY || duty > MAX_SERVO_DUTY)
     return;
-  }
   
-  uint16_t mod = (uint16_t)(FTM3_MOD_VALUE * duty) / 100u;
-
+  // Update mod value w/ duty amount
+  mod = (uint16_t)(FTM3_MOD_VALUE * duty) / 100u;
   FTM3_C0V = mod;
 }
 
