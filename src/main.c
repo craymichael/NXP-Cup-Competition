@@ -73,6 +73,7 @@ int32_t main(void)
     SetDCMotDuty(dc_pid.current_val, 1);
     
     // Off track safety measure
+    // TODO: move to state handling logic
     if (!pnts.l_pnt && !pnts.r_pnt)
     {
       GPIOB_PCOR = (1 << 22); // LED
@@ -83,6 +84,7 @@ int32_t main(void)
       }
       break;
     }
+    // TODO: no edges(intersection)? maybe pnts 0 & 127...
     
     // DC
     // TODO

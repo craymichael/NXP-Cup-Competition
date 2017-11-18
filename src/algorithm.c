@@ -17,7 +17,8 @@
 #include "common.h"
 
 
-/* A very naive edge (line) finding algorithm
+/* An edge (line) finding algorithm
+ * Worst-case complexity O(n^2)
  *
  * Note: line gets modifed in this function
  */
@@ -61,7 +62,7 @@ struct Result find_edges(uint16_t* line)
     {
       // Check if value is interpreted as 1 (towards left)
       if(line[midpoint+i] >= thresh) {
-        r.r_pnt = midpoint+i;
+        r.r_pnt = midpoint+i-1;
         // Find left point
         for(uint32_t j=midpoint+i+1; j<N_CAM_PNTS; ++j)
         {
@@ -75,7 +76,7 @@ struct Result find_edges(uint16_t* line)
       }
       // Check if value is interpreted as 1 (towards right)
       if(line[midpoint-i-1] >= thresh) {
-        r.l_pnt = midpoint-i-1;
+        r.l_pnt = midpoint-i;
         // Find right point
         for(int32_t j=midpoint-i-2; j>=0; --j)
         {
