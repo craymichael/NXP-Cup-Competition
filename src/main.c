@@ -19,7 +19,6 @@
 #include "common.h"
 #include "control.h"
 #include "algorithm.h"
-#include <stdio.h>
 
 void initialize(void);
 
@@ -61,7 +60,7 @@ int32_t main(void)
   SetDCMotDuty(dc_pid.current_val, 1);  // Slow pls TODO 30 MIN do
   
   // Camera
-  for(;;)
+  for(;;) // ctrl+f all TODOs....
   {
     // Get camera line scan output
     get_line(line);
@@ -78,7 +77,7 @@ int32_t main(void)
       GPIOB_PCOR = (1 << 22); // Red LED
       while(dc_pid.current_val)
       {
-        update_pid(&dc_pid, 0, dc_pid.current_val, 0.0f, 100.0f);
+        update_pid(&dc_pid, 0, dc_pid.current_val, 0.0f, 100.0f); // TODO
         SetDCMotDuty(dc_pid.current_val, 1);
       }
       break;
@@ -95,15 +94,11 @@ int32_t main(void)
       update_pid(&servo_pid, steer_duty, servo_pid.current_val, (float)MIN_SERVO_DUTY, (float)MAX_SERVO_DUTY);
       SetServoDuty(servo_pid.current_val);
     }
-    
-#ifdef DEBUG
-    uint8_t str[120];
-    sprintf((char*)str, "left point: %u, right point: %u\r\n", pnts.l_pnt, pnts.r_pnt);
-    uart_put(str);
-    sprintf((char*)str, "steer_duty: %f\r\n", steer_duty);
-    uart_put(str);
-    for(int i=0; i<5000000;++i);
-#endif
+
+    // Debug printing
+    DPRINT("left point: %u, right point: %u\r\n", pnts.l_pnt, pnts.r_pnt);
+    DPRINT("steer_duty: %f\r\n", steer_duty);
+    DDELAY; // Debug delay
   }
   
   return 0;

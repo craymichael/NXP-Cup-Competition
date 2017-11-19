@@ -35,10 +35,29 @@
     V = MAXV;               \
 }
 // PWM Conversion factors
-#include "pwm.h"
+#include "pwm.h" // TODO move all parameters to this file?
 // Servo:
 // Conversion => CAM_OUT * SERVO SCALAR + SERVO_BIAS
 #define SERVO_SCALAR ((float)MIN_SERVO_DUTY / (float)(N_CAM_PNTS-1))
 #define SERVO_BIAS   ((float)MIN_SERVO_DUTY)
+
+// Debug Stuff
+#ifdef DEBUG
+// These libraries become necessary
+#include <stdio.h>
+#include "serial.h" // TODO bluetooth?
+// Debug printing
+#define DPRINT(...) {                   \
+  uint8_t _d_str_[128];                 \
+  sprintf((char*)_d_str_, __VA_ARGS__); \
+  uart_put(_d_str_);                    \
+}
+// Debug delay for somewhat arbitrary time
+#define DDELAY {for(int i=0; i<5000000;++i);}
+#else
+// Empty macros
+#define DPRINT(...)
+#define DDELAY
+#endif
 
 #endif
