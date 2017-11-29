@@ -25,30 +25,28 @@ uint32_t can_steer = 0;
 
 /*
  * Change the Motor Duty Cycle and Frequency
- *   @param duty: (0 to 100%)
- *   @param dir:       1 for C4 active, else C3 active 
+ *   duty: (-100 to 100%)
  */
-void SetDCMotDuty(uint32_t duty, uint32_t dir)
+void SetDCMotDuty(int32_t duty)
 {
   // Calculate the new cutoff value
-  uint16_t mod =  (FTM0_MOD_VALUE * duty) / 100u,
-           modc = (FTM0_MOD_VALUE * (duty + PWM_DCMOT_CORRECT)) / 100u;
+  uint16_t mod;
   
-
   // Set outputs
-  if(dir == 1) {
+  if(duty >= 0) {
+    mod = (FTM0_MOD_VALUE * duty) / 100u;
     // Rear wheel 1
     FTM0_C3V = mod;  // PTC4 (dir 1)
     FTM0_C2V = 0;
     // Rear wheel 2
-    FTM0_C1V = modc; // PTC2 (dir 1)
+    FTM0_C1V = mod; // PTC2 (dir 1)
     FTM0_C0V = 0;
   } else {
     // Rear wheel 1
     FTM0_C2V = mod;  // PTC3 (dir 0)
     FTM0_C3V = 0;
     // Rear wheel 2
-    FTM0_C0V = modc; // PTC1 (dir 0)
+    FTM0_C0V = mod; // PTC1 (dir 0)
     FTM0_C1V = 0;
   }
 }

@@ -13,12 +13,15 @@
  * limitations under the License.
  */
 #include "MK64F12.h"
-#include "serial.h"
 #include "PWM.h"
 #include "camera.h"
 #include "common.h"
 #include "control.h"
 #include "algorithm.h"
+
+#ifdef DEBUG
+#include "serial.h"
+#endif
 
 void initialize(void);
 
@@ -41,9 +44,26 @@ void initialize(void);
  *   PTB9              - camera clk
  *   PTB23             - camera SI
  *   ADC0_DP3/ADC1_DP0 - camera out, ADC0 in
+ *
+ * Bluetooth (HC-06):
+ *   PTA1(UART0_RX) - TXD
+ *   PTA2(UART0_TX) - RXD
+ *   3.3V           - Power 3.6V-6V (Hey, it works)
  */
 int32_t main(void)
 {
+  uart_init();
+    uint8_t str[RX_BUF_SZ];
+  uart_put("AT+BAUD9600");
+  uart_put("AT+VERSION\r");
+  while(1)
+  {
+    //uart_put("WAITING\r\n");
+    uart_get(str);
+    uart_put(str);
+    uart_putchar('\r');
+  }
+  
   uint16_t line[N_CAM_PNTS];
   struct Result pnts;
   float steer_duty = 7.5; //TODO
@@ -56,8 +76,8 @@ int32_t main(void)
 #endif
 
   // Straight line
-  update_pid(&dc_pid, 40, dc_pid.current_val, 0.0f, 100.0f);
-  SetDCMotDuty(dc_pid.current_val, 1);  // Slow pls TODO 30 MIN do
+  update_pid(&dc_pid, 40, dc_pid.current_val, (float)MIN_DCMOT_DUTY, (float)MAX_DCMOT_DUTY);
+  SetDCMotDuty(dc_pid.current_val);  // Slow pls TODO 30 MIN do
   
   // Camera
   for(;;) // ctrl+f all TODOs....
@@ -67,8 +87,8 @@ int32_t main(void)
     // Detect line positions
     pnts = find_edges(line);
     
-    update_pid(&dc_pid, 40, dc_pid.current_val, 0.0f, 100.0f);
-    SetDCMotDuty(dc_pid.current_val, 1);
+    update_pid(&dc_pid, 40, dc_pid.current_val, (float)MIN_DCMOT_DUTY, (float)MAX_DCMOT_DUTY);
+    SetDCMotDuty(dc_pid.current_val);
     
     // Off track safety measure
     // TODO: move to state handling logic
@@ -77,12 +97,12 @@ int32_t main(void)
       GPIOB_PCOR = (1 << 22); // Red LED
       while(dc_pid.current_val)
       {
-        update_pid(&dc_pid, 0, dc_pid.current_val, 0.0f, 100.0f); // TODO
-        SetDCMotDuty(dc_pid.current_val, 1);
+        update_pid(&dc_pid, 0, dc_pid.current_val, (float)MIN_DCMOT_DUTY, (float)MAX_DCMOT_DUTY); // TODO
+        SetDCMotDuty(dc_pid.current_val);
       }
       break;
     }
-    // TODO: no edges(intersection)? maybe pnts 0 & 127...
+    // TODO: no edges(intersection)? maybe pnts 0 & 127...or min/max distance between points
     
     // DC
     // TODO
@@ -109,15 +129,17 @@ int32_t main(void)
  */
 void initialize(void)
 {
+#ifdef DEBUG
   // Initialize UART
   uart_init();
+#endif
 
   // Initialize FTMs for PWM
   InitDCMotPWM();
   InitServoPWM();
   
   // 0 speed, 0 deg turn
-  SetDCMotDuty(0, 1);
+  SetDCMotDuty(0);
   SetServoDuty(7.5); // TODO
   
   // Initialize camera

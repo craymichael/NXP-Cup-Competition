@@ -18,8 +18,9 @@
 // === DC Motor ===
 // PWM frequency
 #define PWM_DCMOT_FREQ    (10000u)
-// PWM correction duty
-#define PWM_DCMOT_CORRECT (0u)
+// Minimum and maximum duty
+#define MAX_DCMOT_DUTY    (100)
+#define MIN_DCMOT_DUTY    (-100)
 // === Servo Motor ===
 // PWM frequency
 #define PWM_SERVO_FREQ    (50u)
@@ -29,7 +30,7 @@
 #define MIN_SERVO_DUTY    (5u + PWM_SERVO_CORRECT)
 #define MAX_SERVO_DUTY    (10u + PWM_SERVO_CORRECT)
 
-void SetDCMotDuty(uint32_t duty, uint32_t dir);
+void SetDCMotDuty(int32_t duty);
 void SetServoDuty(float duty);
 
 uint32_t servo_ready(void);

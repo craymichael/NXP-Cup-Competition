@@ -15,7 +15,11 @@
 #include "MK64F12.h"
 #include "serial.h"
 #include "common.h"
+#include "queue.h"
 #include <stdio.h>
+
+ch_queue_t rx_buf;
+uint8_t rx_buf_data[RX_BUF_SZ];
 
 
 void uart_init()
@@ -27,9 +31,14 @@ void uart_init()
   SIM_SCGC4 |= SIM_SCGC4_UART0_MASK;
 
   // Configure the port control register to alternative 3 (which is UART mode for K64)
-  SIM_SCGC5 |= SIM_SCGC5_PORTB_MASK; // Enable Port B
+  /*SIM_SCGC5 |= SIM_SCGC5_PORTB_MASK; // Enable Port B
   PORTB_PCR16 |= PORT_PCR_MUX(0x3);  // PTB16 - UART0_RX
-  PORTB_PCR17 |= PORT_PCR_MUX(0x3);  // PTB17 - UART0_TX
+  PORTB_PCR17 |= PORT_PCR_MUX(0x3);  // PTB17 - UART0_TX*/
+  
+  // Enable pins to connect with serial bluetooth module
+  SIM_SCGC5 |= SIM_SCGC5_PORTA_MASK;
+  PORTA_PCR1 = PORT_PCR_MUX(0x2) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK; // PTA1 - UART0_RX
+  PORTA_PCR2 = PORT_PCR_MUX(0x2); // PTA2 - UART0_TX
 
   /* Configure the UART for establishing serial communication */
   // Disable transmitter and receiver until proper settings are chosen for the UART module
@@ -60,19 +69,32 @@ void uart_init()
   // Write the value of brfa in UART0_C4
   UART0_C4 |= UART_C4_BRFA(brfa);
 
-  // Enable transmitter and receiver of UART
+  // Init rx buffer
+  ch_queue_init(&rx_buf, rx_buf_data, RX_BUF_SZ);
+
+  // Enable transmitter and receiver of UART w/ rx interrupts
   UART0_C2 |= UART_C2_RE_MASK |
-              UART_C2_TE_MASK;
+              UART_C2_TE_MASK |
+              UART_C2_RIE_MASK;
+  
+  NVIC_EnableIRQ(UART0_RX_TX_IRQn);
+}
+
+
+void UART0_RX_TX_IRQHandler(void)
+{
+  while((UART0_S1 & UART_S1_RDRF_MASK))  // queue up chars
+    ch_queue_push(&rx_buf, UART0_D & UART_D_RT_MASK);
 }
 
 
 uint8_t uart_getchar()
 {
   /* Wait until there is space for more data in the receiver buffer */
-  while(!(UART0_S1 & UART_S1_RDRF_MASK));
+  while(ch_queue_empty(&rx_buf));
 
   /* Return the 8-bit data from the receiver */
-  return UART0_D & UART_D_RT_MASK;
+  return ch_queue_pop(&rx_buf);
 }
 
 
@@ -106,10 +128,8 @@ void putnumU(uint32_t i)
 
 void uart_get(uint8_t* ptr_str)
 {
-  uint32_t count = 0;
-
-  // Retrieve chars until count surpasses CHAR_COUNT
-  while(count < CHAR_COUNT)
+  // Retrieve chars
+  while(1)
   {
     *ptr_str = uart_getchar(); // Get char from UART
 
@@ -117,13 +137,8 @@ void uart_get(uint8_t* ptr_str)
       *ptr_str = '\0';
       return;
     }
-
-    uart_putchar(*ptr_str);  // Echo char
+    
     ptr_str++;
-    count++;
+    //uart_putchar(*ptr_str);
   }
-
-  // End of loop, terminate str and wait until enter is pressed...
-  *ptr_str = '\0';
-  while(uart_getchar() != '\r');
 }

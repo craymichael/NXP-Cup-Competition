@@ -18,8 +18,8 @@
 #include "MK64F12.h"
 
 #define BAUD_RATE     (9600u)      // Default baud rate 
-#define CHAR_COUNT    (10u)        // Default max. permissible length of a sentence
 #define UART_FLUSH_TX {while(!(UART0_S1 & UART_S1_TDRE_MASK));}
+#define RX_BUF_SZ     (128u)
 
 void uart_init(void);
 
