@@ -22,4 +22,3 @@ uint32_t ch_queue_full(ch_queue_t* queue);
 uint32_t ch_queue_empty(ch_queue_t* queue);
 
 #endif
-

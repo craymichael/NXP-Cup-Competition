@@ -23,6 +23,8 @@
 #include "serial.h"
 #endif
 
+#include <math.h>  // TODTODOTODODODO
+
 void initialize(void);
 
 
@@ -51,19 +53,7 @@ void initialize(void);
  *   3.3V           - Power 3.6V-6V (Hey, it works)
  */
 int32_t main(void)
-{
-  uart_init();
-    uint8_t str[RX_BUF_SZ];
-  uart_put("AT+BAUD9600");
-  uart_put("AT+VERSION\r");
-  while(1)
-  {
-    //uart_put("WAITING\r\n");
-    uart_get(str);
-    uart_put(str);
-    uart_putchar('\r');
-  }
-  
+{ 
   uint16_t line[N_CAM_PNTS];
   struct Result pnts;
   float steer_duty = 7.5; //TODO
@@ -76,8 +66,7 @@ int32_t main(void)
 #endif
 
   // Straight line
-  update_pid(&dc_pid, 40, dc_pid.current_val, (float)MIN_DCMOT_DUTY, (float)MAX_DCMOT_DUTY);
-  SetDCMotDuty(dc_pid.current_val);  // Slow pls TODO 30 MIN do
+  SetDCMotDuty(40);
   
   // Camera
   for(;;) // ctrl+f all TODOs....
@@ -87,7 +76,7 @@ int32_t main(void)
     // Detect line positions
     pnts = find_edges(line);
     
-    update_pid(&dc_pid, 40, dc_pid.current_val, (float)MIN_DCMOT_DUTY, (float)MAX_DCMOT_DUTY);
+    update_pid(&dc_pid, 60.0f - (60.0f-40.0f)*fabsf(7.5f-steer_duty)/2.5f, dc_pid.current_val, (float)MIN_DCMOT_DUTY, (float)MAX_DCMOT_DUTY);
     SetDCMotDuty(dc_pid.current_val);
     
     // Off track safety measure
@@ -95,11 +84,12 @@ int32_t main(void)
     if (!pnts.l_pnt && !pnts.r_pnt)
     {
       GPIOB_PCOR = (1 << 22); // Red LED
-      while(dc_pid.current_val)
+      /*while(dc_pid.current_val)
       {
         update_pid(&dc_pid, 0, dc_pid.current_val, (float)MIN_DCMOT_DUTY, (float)MAX_DCMOT_DUTY); // TODO
         SetDCMotDuty(dc_pid.current_val);
-      }
+      }*/
+      SetDCMotDuty(0);
       break;
     }
     // TODO: no edges(intersection)? maybe pnts 0 & 127...or min/max distance between points
@@ -111,15 +101,23 @@ int32_t main(void)
     if (servo_ready())
     {
       steer_duty = SERVO_SCALAR * ((float)(pnts.r_pnt + pnts.l_pnt) / 2.0f - N_CAM_PNTS + 1) * -1.0f + SERVO_BIAS;  // midpoint
+      steer_duty = steer_duty + (steer_duty - 7.5f) * 2.0f;
       update_pid(&servo_pid, steer_duty, servo_pid.current_val, (float)MIN_SERVO_DUTY, (float)MAX_SERVO_DUTY);
+      //update_pid(&servo_pid, 7.5, steer_duty, (float)MIN_SERVO_DUTY, (float)MAX_SERVO_DUTY);
+      //update_pid(&servo_pid, 64, (float)(pnts.r_pnt + pnts.l_pnt) / 2.0f, (float)MIN_SERVO_DUTY, (float)MAX_SERVO_DUTY);
       SetServoDuty(servo_pid.current_val);
     }
 
     // Debug printing
-    DPRINT("left point: %u, right point: %u\r\n", pnts.l_pnt, pnts.r_pnt);
-    DPRINT("steer_duty: %f\r\n", steer_duty);
-    DDELAY; // Debug delay
+    DDELAY(500,
+      DPRINT("left point: %u, right point: %u\r\n", pnts.l_pnt, pnts.r_pnt);
+      DPRINT("midpoint: %f\r\n", (float)(pnts.r_pnt+pnts.l_pnt)/2.0f);
+      DPRINT("steer_duty: %f\r\nservo_pid.current_val: %f\r\n", steer_duty, servo_pid.current_val);
+    )
+    //DDELAY; // Debug delay
   }
+  
+  while(1);
   
   return 0;
 }

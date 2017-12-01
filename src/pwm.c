@@ -42,6 +42,7 @@ void SetDCMotDuty(int32_t duty)
     FTM0_C1V = mod; // PTC2 (dir 1)
     FTM0_C0V = 0;
   } else {
+    mod = (FTM0_MOD_VALUE * -duty) / 100u;
     // Rear wheel 1
     FTM0_C2V = mod;  // PTC3 (dir 0)
     FTM0_C3V = 0;
@@ -109,6 +110,11 @@ void InitDCMotPWM(void)
                PORT_PCR_DSE_MASK;
   PORTC_PCR2 = PORT_PCR_MUX(0x4) |  // Ch1
                PORT_PCR_DSE_MASK;
+  
+  // H Bridge Enable
+  PORTC_PCR12 |= PORT_PCR_MUX(0x1) | PORT_PCR_DSE_MASK;
+  GPIOC_PDDR |= (1 << 12);
+  GPIOC_PSOR |= (1 << 12);
 
   // 39.3.10 Disable Write Protection
   FTM0_MODE |= FTM_MODE_WPDIS_MASK;

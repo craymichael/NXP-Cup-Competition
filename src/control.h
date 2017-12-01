@@ -25,9 +25,9 @@ typedef struct PID
 } PID;
 
 // Gains            DEFAULTS
-#define KP (0.5f)  // 0.5f
-#define KI (0.1f)  // 0.1f
-#define KD (0.25f) // 0.25f
+#define KP (0.420f)  // 0.5f
+#define KI (0.0f)  // 0.1f
+#define KD (0.0f) // 0.25f
 
 float delta_duty(struct Result pnts);
 void update_pid(PID* pid, float setpoint, float actpoint, float min, float max);

@@ -53,11 +53,18 @@
   uart_put(_d_str_);                    \
 }
 // Debug delay for somewhat arbitrary time
-#define DDELAY {for(int i=0; i<5000000;++i);}
+#define DDELAY(lcv, ...) {  \
+  static int _dbg_cnt_ = 0; \
+  if(_dbg_cnt_ == lcv) {    \
+    _dbg_cnt_ = 0;          \
+    __VA_ARGS__             \
+  } else                    \
+    ++_dbg_cnt_;            \
+}
 #else
 // Empty macros
 #define DPRINT(...)
-#define DDELAY
+#define DDELAY(lcv, ...)
 #endif
 
 #endif
