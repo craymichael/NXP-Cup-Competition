@@ -18,6 +18,7 @@
 #include "common.h"
 #include "control.h"
 #include "algorithm.h"
+#include "states.h"
 
 #ifdef DEBUG
 // For Bluetooth/Serial communications
@@ -60,6 +61,7 @@ int32_t main(void)
   float steer_duty,
         midpoint,
         error;
+  uint32_t motor_duty;
   
   PID servo_pid;
   
@@ -96,12 +98,14 @@ int32_t main(void)
         SetDCMotDuty(dc_pid.current_val);
       }*/
       SetDCMotDuty(0);
+      stateSet(0.0f,0);
       break;
     }
     // TODO: no edges(intersection)? maybe pnts 0 & 127...or min/max distance between points
     
     // DC Variable Speed (straight)
-    SetDCMotDuty(60.0f - (60.0f-40.0f)*fabsf(7.5f-steer_duty)/2.5f);
+    motor_duty = 60.0f - (60.0f-40.0f)*fabsf(7.5f-steer_duty)/2.5f;
+    SetDCMotDuty(motor_duty);
     
     // Make control adjustments Change steering duty (TODO init servo_pid)
     if (servo_ready())
@@ -125,12 +129,14 @@ int32_t main(void)
       
       steer_duty = pid_compute(&servo_pid, steer_duty-error);
       CLIP(steer_duty, (float)MIN_SERVO_DUTY, (float)MAX_SERVO_DUTY);
+      stateSet(steer_duty,motor_duty);
       SetServoDuty(steer_duty);
 #else
       // Normalize midpoint to error bounds [-2.5,+2.5] for servo
       error = NORM_CAM2SERVO(midpoint-CAM_MID_PNT);
       steer_duty += pid_compute(&servo_pid, error);
       CLIP(steer_duty, (float)MIN_SERVO_DUTY, (float)MAX_SERVO_DUTY);
+      stateSet(steer_duty,motor_duty);
       SetServoDuty(steer_duty);
 #endif
     }
