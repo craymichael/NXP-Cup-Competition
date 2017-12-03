@@ -18,6 +18,7 @@
 #include "common.h"
 #include "control.h"
 #include "algorithm.h"
+#include "states.h"
 
 #ifdef DEBUG
 // For Bluetooth/Serial communications
@@ -134,6 +135,13 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed)
   float steer_duty,
         midpoint,
         error;
+<<<<<<< .mine
+
+
+=======
+  uint32_t motor_duty;
+  
+>>>>>>> .theirs
   PID servo_pid;
   
 #ifdef DEBUG
@@ -199,12 +207,14 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed)
       */
       steer_duty = pid_compute(&servo_pid, steer_duty-error);
       CLIP(steer_duty, MIN_SERVO_DUTY, MAX_SERVO_DUTY);
+      stateSet(steer_duty,motor_duty);
       SetServoDuty(steer_duty);
 #else
       // Normalize midpoint to error bounds [-2.5,+2.5] for servo
       error = NORM_CAM2SERVO(midpoint-CAM_MID_PNT);
       steer_duty += pid_compute(&servo_pid, error);
       CLIP(steer_duty, MIN_SERVO_DUTY, MAX_SERVO_DUTY);
+      stateSet(steer_duty,motor_duty);
       SetServoDuty(steer_duty);
 #endif
     }
