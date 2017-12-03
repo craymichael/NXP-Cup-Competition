@@ -66,10 +66,15 @@
   } else                    \
     ++_dbg_cnt_;            \
 }
+// Debug
+#define DBG(...) { \
+  __VA_ARGS__      \
+}
 #else
 // Empty macros
 #define DPRINT(...)
 #define DDELAY(lcv, ...)
+#define DBG(...)
 #endif
 
 #endif

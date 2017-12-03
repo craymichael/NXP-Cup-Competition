@@ -29,5 +29,6 @@ void uart_putchar(uint8_t ch);
 void uart_put(uint8_t* ptr_str);
 void uart_get(uint8_t* ptr_str);
 void putnumU(uint32_t i);
+uint32_t uart_hasdata();
 
 #endif

@@ -134,6 +134,14 @@ int32_t main(void)
       SetServoDuty(steer_duty);
 #endif
     }
+    
+    //
+    DBG(
+      if(uart_hasdata())
+      {
+        
+      }
+    );
 
     // Debug printing
     DDELAY(750,
@@ -142,7 +150,7 @@ int32_t main(void)
       DPRINT("steer_duty: %f\r\n", steer_duty);
       DPRINT("error: %f\r\n", error);
       DPRINT("\r\n");
-    )
+    );
   }
   
   while(1);
@@ -155,10 +163,10 @@ int32_t main(void)
  */
 void initialize(void)
 {
-#ifdef DEBUG
-  // Initialize UART
-  uart_init();
-#endif
+  DBG(
+    // Initialize UART
+    uart_init();
+  );
 
   // Initialize FTMs for PWM
   InitDCMotPWM();

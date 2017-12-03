@@ -93,6 +93,12 @@ uint8_t uart_getchar()
 }
 
 
+uint32_t uart_hasdata()
+{
+  return ch_queue_empty(&rx_buf);
+}
+
+
 void uart_putchar(uint8_t ch)
 {
   /* Wait until transmission of previous bit is complete */
