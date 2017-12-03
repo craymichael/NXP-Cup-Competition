@@ -67,4 +67,3 @@ void stateSet(float steerDuty, int32_t motorDuty){
 	GPIOB_PDOR |= (1<<22);
 	GPIOE_PDOR |= (1<<26);
 }
- 

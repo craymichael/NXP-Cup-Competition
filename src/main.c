@@ -135,13 +135,8 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed)
   float steer_duty,
         midpoint,
         error;
-<<<<<<< .mine
-
-
-=======
   uint32_t motor_duty;
-  
->>>>>>> .theirs
+
   PID servo_pid;
   
 #ifdef DEBUG
@@ -184,7 +179,8 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed)
     }
     
     // DC Variable Speed (straight)
-    SetDCMotDuty(maxspeed-(maxspeed-minspeed)*fabsf(CTR_SERVO_DUTY-steer_duty)/(MAX_SERVO_DUTY-CTR_SERVO_DUTY));
+    motor_duty = maxspeed-(maxspeed-minspeed)*fabsf(CTR_SERVO_DUTY-steer_duty)/(MAX_SERVO_DUTY-CTR_SERVO_DUTY);
+    SetDCMotDuty(motor_duty);
     
     // Make control adjustments Change steering duty (TODO init servo_pid)
     if (servo_ready())
@@ -214,8 +210,9 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed)
       error = NORM_CAM2SERVO(midpoint-CAM_MID_PNT);
       steer_duty += pid_compute(&servo_pid, error);
       CLIP(steer_duty, MIN_SERVO_DUTY, MAX_SERVO_DUTY);
-      stateSet(steer_duty,motor_duty);
       SetServoDuty(steer_duty);
+      // LED state
+      stateSet(steer_duty,motor_duty);
 #endif
     }
     
@@ -256,6 +253,9 @@ void initialize(void)
   
   // Initialize camera
   init_camera();
+  
+  // Init LEDs
+  LED_Init();
   
 #ifdef DEBUG_CAM
   debug_camera();
