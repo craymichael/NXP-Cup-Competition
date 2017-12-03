@@ -169,14 +169,14 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed)
     
     // Off track safety measure
     // TODO: move to state handling logic
-    if (!pnts.l_pnt && !pnts.r_pnt)
+    /*if (!pnts.l_pnt && !pnts.r_pnt)
     {
       GPIOB_PCOR = (1 << 22); // Red LED (TODO no debug cam to init RED)
       SetDCMotDuty(minspeed);
       for(uint32_t i=0;i<1000;++i);
       SetDCMotDuty(0);
       return;
-    }
+    }*/
     
     // DC Variable Speed (straight)
     motor_duty = maxspeed-(maxspeed-minspeed)*fabsf(CTR_SERVO_DUTY-steer_duty)/(MAX_SERVO_DUTY-CTR_SERVO_DUTY);
