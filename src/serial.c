@@ -29,11 +29,6 @@ void uart_init()
 
   // Enable clock for UART module
   SIM_SCGC4 |= SIM_SCGC4_UART0_MASK;
-
-  // Configure the port control register to alternative 3 (which is UART mode for K64)
-  /*SIM_SCGC5 |= SIM_SCGC5_PORTB_MASK; // Enable Port B
-  PORTB_PCR16 |= PORT_PCR_MUX(0x3);  // PTB16 - UART0_RX
-  PORTB_PCR17 |= PORT_PCR_MUX(0x3);  // PTB17 - UART0_TX*/
   
   // Enable pins to connect with serial bluetooth module
   SIM_SCGC5 |= SIM_SCGC5_PORTA_MASK;

@@ -19,9 +19,12 @@
 
 typedef struct PID
 {
-  float prev_error;      // n-1 error
-  float current_val; // Current value
+  float setpoint;    // setpoint (target)
+  float prev_error;  // n-1 error
   float integral;    // integral value
+  float kp;          // proportionate gain
+  float ki;          // integral gain
+  float kd;          // derivative gain
 } PID;
 
 // Gains            DEFAULTS
@@ -29,7 +32,7 @@ typedef struct PID
 #define KI (0.0f)  // 0.1f
 #define KD (0.0f) // 0.25f
 
-float delta_duty(struct Result pnts);
-void update_pid(PID* pid, float setpoint, float actpoint, float min, float max);
+void pid_init(PID* pid, float setpoint, float kp, float ki, float kd);
+float pid_compute(PID* pid, float actpoint);
 
 #endif

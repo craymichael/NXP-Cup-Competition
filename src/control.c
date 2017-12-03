@@ -17,18 +17,14 @@
 #include "common.h"
 
 
-// A simple control algorithm
-//   avg centered distance about 20?
-float delta_duty(struct Result pnts)
+void pid_init(PID* pid, float setpoint, float kp, float ki, float kd)
 {
-  int32_t ldist = pnts.l_pnt - N_CAM_PNTS/2,
-          rdist = N_CAM_PNTS/2 - pnts.r_pnt;
-  // If the distance to the right point is further than to the left...
-  if(rdist > ldist) {
-    return 0.005f;
-  } else {
-    return -0.005f;
-  }
+  pid->kp = kp;
+  pid->ki = ki;
+  pid->kd = kd;
+  pid->setpoint = setpoint;
+  pid->integral = 0.0f;
+  pid->prev_error = 0.0f;
 }
 
 
@@ -37,12 +33,12 @@ float delta_duty(struct Result pnts)
  * setpoint: Desired thing (target)
  * actpoint: Actual thing
  */
-void update_pid(PID* pid, float setpoint, float actpoint, float min, float max)
+float pid_compute(PID* pid, float actpoint)
 {
-  float error, derivative;
+  float error, derivative, current_val;
   
   // Compute error
-  error = setpoint - actpoint;
+  error = pid->setpoint - actpoint;
   
   // Update integral value
   pid->integral += error;
@@ -51,13 +47,12 @@ void update_pid(PID* pid, float setpoint, float actpoint, float min, float max)
   derivative = error - pid->prev_error;
   
   // Update output
-  pid->current_val += KP * error +         // Proportion
-                      KI * pid->integral + // Integral
-                      KD * derivative;     // Derivative
-  
-  // Clip output
-  CLIP(pid->current_val, min, max);
+  current_val = pid->kp * error +         // Proportion
+                pid->ki * pid->integral + // Integral
+                pid->kd * derivative;     // Derivative
   
   // Save error
   pid->prev_error = error;
+  
+  return current_val;
 }

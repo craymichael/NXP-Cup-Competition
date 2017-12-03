@@ -29,6 +29,8 @@
 // Maximum and minimum duty
 #define MIN_SERVO_DUTY    (5u + PWM_SERVO_CORRECT)
 #define MAX_SERVO_DUTY    (10u + PWM_SERVO_CORRECT)
+// Center servo duty
+#define CTR_SERVO_DUTY    ((float)(MAX_SERVO_DUTY+MIN_SERVO_DUTY)/2.0f)
 
 void SetDCMotDuty(int32_t duty);
 void SetServoDuty(float duty);

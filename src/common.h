@@ -19,8 +19,10 @@
 // period = 1/20485760  = 4.8814395e-8
 #define DEFAULT_SYSTEM_CLOCK (20485760u)
 
-// Number of data points the camera outputs
+// Number of data points the camera outputs, range [0,N_CAM_PNTS-1]
 #define N_CAM_PNTS           (128)
+// Camera midpoint
+#define CAM_MID_PNT          ((float)(N_CAM_PNTS-1) / 2.0f)
 
 // "FUNCTIONS"
 // Return max of A and B
@@ -34,12 +36,15 @@
   else if (V > MAXV)        \
     V = MAXV;               \
 }
+
 // PWM Conversion factors
 #include "pwm.h" // TODO move all parameters to this file?
 // Servo:
 // Conversion => CAM_OUT * SERVO SCALAR + SERVO_BIAS
 #define SERVO_SCALAR ((float)MIN_SERVO_DUTY / (float)(N_CAM_PNTS-1))
 #define SERVO_BIAS   ((float)MIN_SERVO_DUTY)
+// Normalization factor from camera index error to servo-scale PWM error (for PID gain selection sake)
+#define NORM_CAM2SERVO(P) (-P*MIN_SERVO_DUTY/(2.0f*CAM_MID_PNT))
 
 // Debug Stuff
 #ifdef DEBUG

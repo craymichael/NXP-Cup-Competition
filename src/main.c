@@ -20,6 +20,7 @@
 #include "algorithm.h"
 
 #ifdef DEBUG
+// For Bluetooth/Serial communications
 #include "serial.h"
 #endif
 
@@ -56,17 +57,25 @@ int32_t main(void)
 { 
   uint16_t line[N_CAM_PNTS];
   struct Result pnts;
-  float steer_duty = 7.5; //TODO
-  PID servo_pid, dc_pid;
+  float steer_duty,
+        midpoint,
+        error;
   
+  PID servo_pid;
+  
+  // Init K64F modules
   initialize();
-
-#ifdef DEBUG_CAM // TODO remove DDEBUG_CAM macro from compilation line for comp.
-  //debug_camera();
+  
+#ifdef DUMB_WAY
+  pid_init(&servo_pid, 0.0f, KP, KI, KD);
+#else
+  // Init Servo PID (0.0 is line center)
+  pid_init(&servo_pid, 0.0f, KP, KI, KD);
 #endif
 
-  // Straight line
+  // Straight line, straight wheels
   SetDCMotDuty(40);
+  steer_duty = CTR_SERVO_DUTY;
   
   // Camera
   for(;;) // ctrl+f all TODOs....
@@ -76,14 +85,11 @@ int32_t main(void)
     // Detect line positions
     pnts = find_edges(line);
     
-    update_pid(&dc_pid, 60.0f - (60.0f-40.0f)*fabsf(7.5f-steer_duty)/2.5f, dc_pid.current_val, (float)MIN_DCMOT_DUTY, (float)MAX_DCMOT_DUTY);
-    SetDCMotDuty(dc_pid.current_val);
-    
     // Off track safety measure
     // TODO: move to state handling logic
     if (!pnts.l_pnt && !pnts.r_pnt)
     {
-      GPIOB_PCOR = (1 << 22); // Red LED
+      GPIOB_PCOR = (1 << 22); // Red LED (TODO no debug cam to init RED)
       /*while(dc_pid.current_val)
       {
         update_pid(&dc_pid, 0, dc_pid.current_val, (float)MIN_DCMOT_DUTY, (float)MAX_DCMOT_DUTY); // TODO
@@ -94,27 +100,49 @@ int32_t main(void)
     }
     // TODO: no edges(intersection)? maybe pnts 0 & 127...or min/max distance between points
     
-    // DC
-    // TODO
+    // DC Variable Speed (straight)
+    SetDCMotDuty(60.0f - (60.0f-40.0f)*fabsf(7.5f-steer_duty)/2.5f);
     
     // Make control adjustments Change steering duty (TODO init servo_pid)
     if (servo_ready())
     {
-      steer_duty = SERVO_SCALAR * ((float)(pnts.r_pnt + pnts.l_pnt) / 2.0f - N_CAM_PNTS + 1) * -1.0f + SERVO_BIAS;  // midpoint
-      steer_duty = steer_duty + (steer_duty - 7.5f) * 2.0f;
-      update_pid(&servo_pid, steer_duty, servo_pid.current_val, (float)MIN_SERVO_DUTY, (float)MAX_SERVO_DUTY);
-      //update_pid(&servo_pid, 7.5, steer_duty, (float)MIN_SERVO_DUTY, (float)MAX_SERVO_DUTY);
-      //update_pid(&servo_pid, 64, (float)(pnts.r_pnt + pnts.l_pnt) / 2.0f, (float)MIN_SERVO_DUTY, (float)MAX_SERVO_DUTY);
-      SetServoDuty(servo_pid.current_val);
+      // Compute camera midpoint
+      midpoint = (float)(pnts.r_pnt + pnts.l_pnt) / 2.0f;
+      
+#ifdef DUMB_WAY 
+      // Normalize midpoint to bounds [5,10] for servo
+      error = SERVO_SCALAR * (midpoint - N_CAM_PNTS + 1) * -1.0f + SERVO_BIAS;
+      // Double relative error
+      error = error + (error - CTR_SERVO_DUTY) * 2.0f;
+      /*
+      // Squared relative error
+      float sqerr = (steer_duty - CTR_SERVO_DUTY);
+      if(sqerr < 0)
+        steer_duty = steer_duty - sqerr * sqerr;
+      else
+        steer_duty = steer_duty + sqerr * sqerr;
+      */
+      
+      steer_duty = pid_compute(&servo_pid, steer_duty-error);
+      CLIP(steer_duty, (float)MIN_SERVO_DUTY, (float)MAX_SERVO_DUTY);
+      SetServoDuty(steer_duty);
+#else
+      // Normalize midpoint to error bounds [-2.5,+2.5] for servo
+      error = NORM_CAM2SERVO(midpoint-CAM_MID_PNT);
+      steer_duty += pid_compute(&servo_pid, error);
+      CLIP(steer_duty, (float)MIN_SERVO_DUTY, (float)MAX_SERVO_DUTY);
+      SetServoDuty(steer_duty);
+#endif
     }
 
     // Debug printing
-    DDELAY(500,
+    DDELAY(750,
       DPRINT("left point: %u, right point: %u\r\n", pnts.l_pnt, pnts.r_pnt);
-      DPRINT("midpoint: %f\r\n", (float)(pnts.r_pnt+pnts.l_pnt)/2.0f);
-      DPRINT("steer_duty: %f\r\nservo_pid.current_val: %f\r\n", steer_duty, servo_pid.current_val);
+      DPRINT("midpoint: %f\r\n", midpoint);
+      DPRINT("steer_duty: %f\r\n", steer_duty);
+      DPRINT("error: %f\r\n", error);
+      DPRINT("\r\n");
     )
-    //DDELAY; // Debug delay
   }
   
   while(1);
@@ -138,8 +166,12 @@ void initialize(void)
   
   // 0 speed, 0 deg turn
   SetDCMotDuty(0);
-  SetServoDuty(7.5); // TODO
+  SetServoDuty(CTR_SERVO_DUTY);
   
   // Initialize camera
   init_camera();
+  
+#ifdef DEBUG_CAM
+  debug_camera();
+#endif
 }

@@ -73,10 +73,16 @@ void init_camera(void)
 
 void get_line(uint16_t* line_p)
 {
-  while(!new_line); // wait until new line available
-  
-  // Make sure line doesn't get messed with
-  NVIC_DisableIRQ(FTM2_IRQn);
+  // wait until new line available
+  for(;;)
+  {
+    // Make sure line doesn't get messed with
+    NVIC_DisableIRQ(FTM2_IRQn);
+    if(new_line) // Check if line available
+      break;
+    // Resume camera captures
+    NVIC_EnableIRQ(FTM2_IRQn);
+  }
   
   for(uint32_t i = 0; i < N_CAM_PNTS; ++i) { // copy line
     line_p[i] = line[i];
@@ -125,12 +131,11 @@ void FTM2_IRQHandler(void)
         line[0] = ADC0VAL;
         break;
       default: // 2 <= pixcnt < 256
-        if (!(GPIOB_PDOR & (1 << 9))) { // check for falling edge
+        if (!(GPIOB_PDOR & (1 << 9))) // check for falling edge
           line[pixcnt/2] = ADC0VAL; // ADC read
-        }
         break;
     }
-    pixcnt += 1;
+    ++pixcnt;
   } else {
     pixcnt = -2;  // reset counter
     new_line = 1; // new line available
