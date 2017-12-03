@@ -27,11 +27,6 @@ typedef struct PID
   float kd;          // derivative gain
 } PID;
 
-// Gains            DEFAULTS
-#define KP (0.420f)  // 0.5f
-#define KI (0.0f)  // 0.1f
-#define KD (0.0f) // 0.25f
-
 void pid_init(PID* pid, float setpoint, float kp, float ki, float kd);
 float pid_compute(PID* pid, float actpoint);
 

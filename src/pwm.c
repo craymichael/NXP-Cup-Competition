@@ -27,7 +27,7 @@ uint32_t can_steer = 0;
  * Change the Motor Duty Cycle and Frequency
  *   duty: (-100 to 100%)
  */
-void SetDCMotDuty(int32_t duty)
+void SetDCMotDuty(float duty)
 {
   // Calculate the new cutoff value
   uint16_t mod;

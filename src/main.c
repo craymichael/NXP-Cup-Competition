@@ -24,9 +24,14 @@
 #include "serial.h"
 #endif
 
-#include <math.h>  // TODTODOTODODODO
+// Variable speed
+#include <math.h>
+// Parsing BT cmds
+#include <string.h>
+#include <stdlib.h>
 
 void initialize(void);
+void run(float kp, float ki, float kd, float minspeed, float maxspeed);
 
 
 /* Motors:
@@ -54,31 +59,105 @@ void initialize(void);
  *   3.3V           - Power 3.6V-6V (Hey, it works)
  */
 int32_t main(void)
-{ 
+{
+  // PID parameters
+  float kp = KP,
+        ki = KI,
+        kd = KD;
+  // Min max DC motor speeds
+  float minspeed = MINSPEED,
+        maxspeed = MAXSPEED;
+  
+#ifdef DEBUG
+  // Input command
+  uint8_t cmd[50];
+#endif
+  
+  // Init K64F modules
+  initialize();
+  
+  for(;;)
+  {
+    DBG(
+      // Wait until BT command received
+      DPRINT("Enter Command:\r\n");
+      uart_get(cmd);
+      if(!strcmp((char*)cmd, CSTART))
+      {
+        // Run
+        DPRINT("Running with:\r\n");
+        DPRINT("  kp:       %f\r\n", kp);
+        DPRINT("  ki:       %f\r\n", ki);
+        DPRINT("  kd:       %f\r\n", kd);
+        DPRINT("  minspeed: %f\r\n", minspeed);
+        DPRINT("  maxspeed: %f\r\n", maxspeed);
+        DPRINT("==========================\r\n\r\n");
+        run(kp, ki, kd, minspeed, maxspeed);
+        DPRINT("Stopping run.\r\n");
+      } else if(!strcmp((char*)cmd, CPID))
+      {
+        // Get KP
+        DPRINT("Enter KP:\r\n");
+        uart_get(cmd);
+        kp = strtof((char*)cmd, NULL);
+        // Get KI
+        DPRINT("Enter KI:\r\n");
+        uart_get(cmd);
+        ki = strtof((char*)cmd, NULL);
+        // Get KD
+        DPRINT("Enter KD:\r\n");
+        uart_get(cmd);
+        kd = strtof((char*)cmd, NULL);
+      } else if(!strcmp((char*)cmd, CSPEEDS))
+      {
+        // Get KI
+        DPRINT("Enter minspeed:\r\n");
+        uart_get(cmd);
+        minspeed = strtof((char*)cmd, NULL);
+        // Get KD
+        DPRINT("Enter maxspeed:\r\n");
+        uart_get(cmd);
+        maxspeed = strtof((char*)cmd, NULL);
+      }
+    );
+    // Else use buttons...TODO
+  }
+  
+  return 0;
+}
+
+
+void run(float kp, float ki, float kd, float minspeed, float maxspeed)
+{
   uint16_t line[N_CAM_PNTS];
   struct Result pnts;
   float steer_duty,
         midpoint,
         error;
-  
   PID servo_pid;
   
-  // Init K64F modules
-  initialize();
+#ifdef DEBUG
+  // Input command
+  uint8_t cmd[50];
+#endif
+  
+  // 0 speed, 0 deg turn
+  SetDCMotDuty(0);
+  SetServoDuty(CTR_SERVO_DUTY);
   
 #ifdef DUMB_WAY
-  pid_init(&servo_pid, 0.0f, KP, KI, KD);
+  pid_init(&servo_pid, 0.0f, kp, ki, kd);
 #else
   // Init Servo PID (0.0 is line center)
-  pid_init(&servo_pid, 0.0f, KP, KI, KD);
+  pid_init(&servo_pid, 0.0f, kp, ki, kd);
 #endif
 
   // Straight line, straight wheels
-  SetDCMotDuty(40);
+  SetDCMotDuty(minspeed);
   steer_duty = CTR_SERVO_DUTY;
   
   // Camera
-  for(;;) // ctrl+f all TODOs....
+  for(;;)
   {
     // Get camera line scan output
     get_line(line);
@@ -90,18 +169,14 @@ int32_t main(void)
     if (!pnts.l_pnt && !pnts.r_pnt)
     {
       GPIOB_PCOR = (1 << 22); // Red LED (TODO no debug cam to init RED)
-      /*while(dc_pid.current_val)
-      {
-        update_pid(&dc_pid, 0, dc_pid.current_val, (float)MIN_DCMOT_DUTY, (float)MAX_DCMOT_DUTY); // TODO
-        SetDCMotDuty(dc_pid.current_val);
-      }*/
+      SetDCMotDuty(minspeed);
+      for(uint32_t i=0;i<1000;++i);
       SetDCMotDuty(0);
-      break;
+      return;
     }
-    // TODO: no edges(intersection)? maybe pnts 0 & 127...or min/max distance between points
     
     // DC Variable Speed (straight)
-    SetDCMotDuty(60.0f - (60.0f-40.0f)*fabsf(7.5f-steer_duty)/2.5f);
+    SetDCMotDuty(maxspeed-(maxspeed-minspeed)*fabsf(CTR_SERVO_DUTY-steer_duty)/(MAX_SERVO_DUTY-CTR_SERVO_DUTY));
     
     // Make control adjustments Change steering duty (TODO init servo_pid)
     if (servo_ready())
@@ -122,24 +197,25 @@ int32_t main(void)
       else
         steer_duty = steer_duty + sqerr * sqerr;
       */
-      
       steer_duty = pid_compute(&servo_pid, steer_duty-error);
-      CLIP(steer_duty, (float)MIN_SERVO_DUTY, (float)MAX_SERVO_DUTY);
+      CLIP(steer_duty, MIN_SERVO_DUTY, MAX_SERVO_DUTY);
       SetServoDuty(steer_duty);
 #else
       // Normalize midpoint to error bounds [-2.5,+2.5] for servo
       error = NORM_CAM2SERVO(midpoint-CAM_MID_PNT);
       steer_duty += pid_compute(&servo_pid, error);
-      CLIP(steer_duty, (float)MIN_SERVO_DUTY, (float)MAX_SERVO_DUTY);
+      CLIP(steer_duty, MIN_SERVO_DUTY, MAX_SERVO_DUTY);
       SetServoDuty(steer_duty);
 #endif
     }
     
-    //
+    // Check if command received to stop running
     DBG(
       if(uart_hasdata())
       {
-        
+        uart_get(cmd);
+        if(!strcmp((char*)cmd, CSTOP))
+          return;
       }
     );
 
@@ -152,10 +228,6 @@ int32_t main(void)
       DPRINT("\r\n");
     );
   }
-  
-  while(1);
-  
-  return 0;
 }
 
 
@@ -171,10 +243,6 @@ void initialize(void)
   // Initialize FTMs for PWM
   InitDCMotPWM();
   InitServoPWM();
-  
-  // 0 speed, 0 deg turn
-  SetDCMotDuty(0);
-  SetServoDuty(CTR_SERVO_DUTY);
   
   // Initialize camera
   init_camera();

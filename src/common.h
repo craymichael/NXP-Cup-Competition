@@ -24,6 +24,15 @@
 // Camera midpoint
 #define CAM_MID_PNT          ((float)(N_CAM_PNTS-1) / 2.0f)
 
+// Parameters
+// Gains            DEFAULTS
+#define KP (0.420f)  // 0.5f
+#define KI (0.0f)  // 0.1f
+#define KD (0.0f) // 0.25f
+// Speeds (PWM)
+#define MINSPEED (40.0f)
+#define MAXSPEED (60.0f)
+
 // "FUNCTIONS"
 // Return max of A and B
 #define MAX(A,B)  (A < B ? B : A)

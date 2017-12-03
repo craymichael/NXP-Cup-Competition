@@ -83,7 +83,7 @@ void UART0_RX_TX_IRQHandler(void)
 }
 
 
-uint8_t uart_getchar()
+uint8_t uart_getchar(void)
 {
   /* Wait until there is space for more data in the receiver buffer */
   while(ch_queue_empty(&rx_buf));
@@ -93,9 +93,9 @@ uint8_t uart_getchar()
 }
 
 
-uint32_t uart_hasdata()
+uint32_t uart_hasdata(void)
 {
-  return ch_queue_empty(&rx_buf);
+  return !ch_queue_empty(&rx_buf);
 }
 
 
@@ -130,7 +130,7 @@ void putnumU(uint32_t i)
 void uart_get(uint8_t* ptr_str)
 {
   // Retrieve chars
-  while(1)
+  for(;;)
   {
     *ptr_str = uart_getchar(); // Get char from UART
 
@@ -140,6 +140,5 @@ void uart_get(uint8_t* ptr_str)
     }
     
     ptr_str++;
-    //uart_putchar(*ptr_str);
   }
 }

@@ -21,6 +21,12 @@
 #define UART_FLUSH_TX {while(!(UART0_S1 & UART_S1_TDRE_MASK));}
 #define RX_BUF_SZ     (128u)
 
+// Commands
+#define CSTART  ("start")
+#define CSTOP   ("stop")
+#define CPID    ("pid")
+#define CSPEEDS ("speed")
+
 void uart_init(void);
 
 uint8_t uart_getchar(void);
@@ -29,6 +35,6 @@ void uart_putchar(uint8_t ch);
 void uart_put(uint8_t* ptr_str);
 void uart_get(uint8_t* ptr_str);
 void putnumU(uint32_t i);
-uint32_t uart_hasdata();
+uint32_t uart_hasdata(void);
 
 #endif
