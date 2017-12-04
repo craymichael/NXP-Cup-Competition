@@ -78,6 +78,58 @@
         <IsCurrentTarget>1</IsCurrentTarget>
       </OPTFL>
       <CpuCode>8</CpuCode>
+      <Books>
+        <Book>
+          <Number>0</Number>
+          <Title>FRDM-K64F Schematics (FRDM-K64F)</Title>
+          <Path>C:\Keil\ARM\PACK\Keil\Kinetis_K60_DFP\1.5.0\Boards/NXP/FRDM-K64F/Documents/FRDM-K64F_SCH.pdf</Path>
+        </Book>
+        <Book>
+          <Number>1</Number>
+          <Title>User Manual (FRDM-K64F)</Title>
+          <Path>C:\Keil\ARM\PACK\Keil\Kinetis_K60_DFP\1.5.0\Boards/NXP/FRDM-K64F/Documents/FRDMK64FUG.pdf</Path>
+        </Book>
+        <Book>
+          <Number>2</Number>
+          <Title>Quick Start Guide (FRDM-K64F)</Title>
+          <Path>C:\Keil\ARM\PACK\Keil\Kinetis_K60_DFP\1.5.0\Boards/NXP/FRDM-K64F/Documents/FRDMK64QSG.pdf</Path>
+        </Book>
+        <Book>
+          <Number>3</Number>
+          <Title>Quick Start Guide (TWR-K60D100M)</Title>
+          <Path>C:\Keil\ARM\PACK\Keil\Kinetis_K60_DFP\1.5.0\Boards/NXP/TWR-K60D100M/Documents/TWR-K60D100MQSG.pdf</Path>
+        </Book>
+        <Book>
+          <Number>4</Number>
+          <Title>Schematic (TWR-K60D100M)</Title>
+          <Path>C:\Keil\ARM\PACK\Keil\Kinetis_K60_DFP\1.5.0\Boards/NXP/TWR-K60D100M/Documents/TWR-K60D100M_SCH.pdf</Path>
+        </Book>
+        <Book>
+          <Number>5</Number>
+          <Title>User Manual (TWR-K60D100M)</Title>
+          <Path>C:\Keil\ARM\PACK\Keil\Kinetis_K60_DFP\1.5.0\Boards/NXP/TWR-K60D100M/Documents/TWRK60D100MUM.pdf</Path>
+        </Book>
+        <Book>
+          <Number>6</Number>
+          <Title>Quick Start Guide (TWR-K64F120M)</Title>
+          <Path>C:\Keil\ARM\PACK\Keil\Kinetis_K60_DFP\1.5.0\Boards/NXP/TWR-K64F120M/Documents/TWRK64FQSG.pdf</Path>
+        </Book>
+        <Book>
+          <Number>7</Number>
+          <Title>TWR-K60D100M Web Page (TWR-K60D100M)</Title>
+          <Path>http://www.nxp.com/products/microcontrollers-and-processors/arm-processors/kinetis-cortex-m-mcus/k-series-performance-m4/k6x-ethernet/kinetis-k60-100-mhz-mcu-tower-system-module:TWR-K60D100M</Path>
+        </Book>
+        <Book>
+          <Number>8</Number>
+          <Title>TWR-K64F120M Web Page (TWR-K64F120M)</Title>
+          <Path>http://www.nxp.com/products/sensors/accelerometers/3-axis-accelerometers/kinetis-k64-mcu-tower-system-module:TWR-K64F120M</Path>
+        </Book>
+        <Book>
+          <Number>9</Number>
+          <Title>FRDM-K64F Web Page (FRDM-K64F)</Title>
+          <Path>http://www.nxp.com/products/software-and-tools/hardware-development-tools/freedom-development-boards/freedom-development-platform-for-kinetis-k64-k63-and-k24-mcus:FRDM-K64F</Path>
+        </Book>
+      </Books>
       <DebugOpt>
         <uSim>0</uSim>
         <uTrg>1</uTrg>
@@ -100,7 +152,6 @@
         <tRSysVw>1</tRSysVw>
         <sRunDeb>0</sRunDeb>
         <sLrtime>0</sLrtime>
-        <bEvRecOn>1</bEvRecOn>
         <nTsel>12</nTsel>
         <sDll></sDll>
         <sDllPa></sDllPa>
@@ -203,17 +254,6 @@
       </DebugFlag>
       <LintExecutable></LintExecutable>
       <LintConfigFile></LintConfigFile>
-      <bLintAuto>0</bLintAuto>
-      <bAutoGenD>0</bAutoGenD>
-      <LntExFlags>0</LntExFlags>
-      <pMisraName></pMisraName>
-      <pszMrule></pszMrule>
-      <pSingCmds></pSingCmds>
-      <pMultCmds></pMultCmds>
-      <pMisraNamep></pMisraNamep>
-      <pszMrulep></pszMrulep>
-      <pSingCmdsp></pSingCmdsp>
-      <pMultCmdsp></pMultCmdsp>
     </TargetOption>
   </Target>
 
@@ -228,6 +268,7 @@
       <FileNumber>1</FileNumber>
       <FileType>5</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\src\pwm.h</PathWithFileName>
@@ -240,6 +281,7 @@
       <FileNumber>2</FileNumber>
       <FileType>5</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\src\serial.h</PathWithFileName>
@@ -252,6 +294,7 @@
       <FileNumber>3</FileNumber>
       <FileType>5</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\src\camera.h</PathWithFileName>
@@ -264,6 +307,7 @@
       <FileNumber>4</FileNumber>
       <FileType>5</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\src\control.h</PathWithFileName>
@@ -276,6 +320,7 @@
       <FileNumber>5</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\src\camera.c</PathWithFileName>
@@ -288,6 +333,7 @@
       <FileNumber>6</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\src\control.c</PathWithFileName>
@@ -300,6 +346,7 @@
       <FileNumber>7</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\src\main.c</PathWithFileName>
@@ -312,6 +359,7 @@
       <FileNumber>8</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\src\pwm.c</PathWithFileName>
@@ -324,6 +372,7 @@
       <FileNumber>9</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\src\serial.c</PathWithFileName>
@@ -336,6 +385,7 @@
       <FileNumber>10</FileNumber>
       <FileType>5</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\src\common.h</PathWithFileName>
@@ -348,6 +398,7 @@
       <FileNumber>11</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\src\algorithm.c</PathWithFileName>
@@ -360,6 +411,7 @@
       <FileNumber>12</FileNumber>
       <FileType>5</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\src\algorithm.h</PathWithFileName>
@@ -372,6 +424,7 @@
       <FileNumber>13</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\src\queue.c</PathWithFileName>
@@ -384,6 +437,7 @@
       <FileNumber>14</FileNumber>
       <FileType>5</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\src\queue.h</PathWithFileName>
@@ -396,6 +450,7 @@
       <FileNumber>15</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\src\states.c</PathWithFileName>
@@ -408,6 +463,7 @@
       <FileNumber>16</FileNumber>
       <FileType>5</FileType>
       <tvExp>0</tvExp>
+      <Focus>1</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>.\src\states.h</PathWithFileName>

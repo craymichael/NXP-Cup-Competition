@@ -44,8 +44,7 @@ void stateSet(float steerDuty, int32_t motorDuty){
     else
     {
         OFFLED
-        STRAIGHT
-        
+        STRAIGHT   
     }
 }
 

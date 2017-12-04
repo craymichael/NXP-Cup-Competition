@@ -27,28 +27,33 @@ uint32_t can_steer = 0;
  * Change the Motor Duty Cycle and Frequency
  *   duty: (-100 to 100%)
  */
-void SetDCMotDuty(float duty)
+void SetDCMotDuty(float lduty, float rduty)
 {
   // Calculate the new cutoff value
-  uint16_t mod;
+  uint16_t lmod, rmod;
   
   // Set outputs
-  if(duty >= 0) {
-    mod = (FTM0_MOD_VALUE * duty) / 100u;
-    // Rear wheel 1
-    FTM0_C3V = mod;  // PTC4 (dir 1)
-    FTM0_C2V = 0;
+  if(rduty >= 0) {
+    rmod = (FTM0_MOD_VALUE * rduty) / 100u;
     // Rear wheel 2
-    FTM0_C1V = mod; // PTC2 (dir 1)
+    FTM0_C1V = rmod; // PTC2 (dir 1)
     FTM0_C0V = 0;
   } else {
-    mod = (FTM0_MOD_VALUE * -duty) / 100u;
-    // Rear wheel 1
-    FTM0_C2V = mod;  // PTC3 (dir 0)
-    FTM0_C3V = 0;
+    rmod = (FTM0_MOD_VALUE * -rduty) / 100u;
     // Rear wheel 2
-    FTM0_C0V = mod; // PTC1 (dir 0)
+    FTM0_C0V = rmod; // PTC1 (dir 0)
     FTM0_C1V = 0;
+  }
+  if(lduty >= 0) {
+    lmod = (FTM0_MOD_VALUE * lduty) / 100u;
+    // Rear wheel 1
+    FTM0_C3V = lmod;  // PTC4 (dir 1)
+    FTM0_C2V = 0;
+  } else {
+    lmod = (FTM0_MOD_VALUE * lduty) / 100u;
+    // Rear wheel 1
+    FTM0_C2V = lmod;  // PTC3 (dir 0)
+    FTM0_C3V = 0;
   }
 }
 

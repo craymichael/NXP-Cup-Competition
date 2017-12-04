@@ -34,6 +34,8 @@
 void initialize(void);
 void run(float kp, float ki, float kd, float minspeed, float maxspeed);
 
+#define DUMB_WAY
+
 
 /* Motors:
  *   1: forwards
@@ -133,9 +135,11 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed)
   uint16_t line[N_CAM_PNTS];
   struct Result pnts;
   float steer_duty,
+        steer_duty_raw,
         midpoint,
-        error;
-  uint32_t motor_duty;
+        error,
+        motor_duty,
+        diff_steer;
 
   PID servo_pid;
   
@@ -145,7 +149,7 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed)
 #endif
   
   // 0 speed, 0 deg turn
-  SetDCMotDuty(0);
+  SetDCMotDuty(0.0f, 0.0f);
   SetServoDuty(CTR_SERVO_DUTY);
   
 #ifdef DUMB_WAY
@@ -156,7 +160,7 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed)
 #endif
 
   // Straight line, straight wheels
-  SetDCMotDuty(minspeed);
+  SetDCMotDuty(minspeed, minspeed);
   steer_duty = CTR_SERVO_DUTY;
   
   // Camera
@@ -177,43 +181,52 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed)
       SetDCMotDuty(0);
       return;
     }*/
-    
-    // DC Variable Speed (straight)
-    motor_duty = maxspeed-(maxspeed-minspeed)*fabsf(CTR_SERVO_DUTY-steer_duty)/(MAX_SERVO_DUTY-CTR_SERVO_DUTY);
-    SetDCMotDuty(motor_duty);
-    
+        
     // Make control adjustments Change steering duty (TODO init servo_pid)
     if (servo_ready())
     {
       // Compute camera midpoint
       midpoint = (float)(pnts.r_pnt + pnts.l_pnt) / 2.0f;
       
-#ifdef DUMB_WAY 
+#ifdef DUMB_WAY
       // Normalize midpoint to bounds [5,10] for servo
-      error = SERVO_SCALAR * (midpoint - N_CAM_PNTS + 1) * -1.0f + SERVO_BIAS;
+      steer_duty_raw = SERVO_SCALAR * (midpoint - N_CAM_PNTS + 1) * -1.0f + SERVO_BIAS;
       // Double relative error
-      error = error + (error - CTR_SERVO_DUTY) * 2.0f;
-      /*
-      // Squared relative error
-      float sqerr = (steer_duty - CTR_SERVO_DUTY);
-      if(sqerr < 0)
-        steer_duty = steer_duty - sqerr * sqerr;
-      else
-        steer_duty = steer_duty + sqerr * sqerr;
-      */
-      steer_duty = pid_compute(&servo_pid, steer_duty-error);
+      steer_duty_raw += (steer_duty_raw - CTR_SERVO_DUTY) * kp;
+      steer_duty = steer_duty_raw;
+      // Clip value
       CLIP(steer_duty, MIN_SERVO_DUTY, MAX_SERVO_DUTY);
-      stateSet(steer_duty,motor_duty);
+      // DC Variable Speed
+      motor_duty = maxspeed-(maxspeed-minspeed)*fabsf(CTR_SERVO_DUTY-steer_duty)/(MAX_SERVO_DUTY-CTR_SERVO_DUTY);
+      // Differential steering
+      if(steer_duty_raw < MIN_SERVO_DUTY)
+      {
+        diff_steer = motor_duty / (MIN_SERVO_DUTY - steer_duty_raw);
+      } else if(steer_duty_raw > MAX_SERVO_DUTY)
+      {
+        diff_steer = motor_duty / (steer_duty_raw - MAX_SERVO_DUTY);
+      } else {
+        diff_steer = motor_duty;
+      }
+      // Diff steering
+      //diff_steer = ki * motor_duty * (1.0f - fabsf(steer_duty - CTR_SERVO_DUTY) / 2.5f);
+      //diff_steer = ki * maxspeed * (1.0f - minspeed / MAX_SERVO_DUTY - fabsf(steer_duty - CTR_SERVO_DUTY) / 2.5f) + minspeed / MAX_SERVO_DUTY;
+      
       SetServoDuty(steer_duty);
 #else
       // Normalize midpoint to error bounds [-2.5,+2.5] for servo
-      error = NORM_CAM2SERVO(midpoint-CAM_MID_PNT);
+      error = NORM_CAM2SERVO(CAM_MID_PNT-midpoint);
       steer_duty += pid_compute(&servo_pid, error);
-      CLIP(steer_duty, MIN_SERVO_DUTY, MAX_SERVO_DUTY);
+      CLIP(steer_duty, steer_duty, MIN_SERVO_DUTY, MAX_SERVO_DUTY);
       SetServoDuty(steer_duty);
-      // LED state
-      stateSet(steer_duty,motor_duty);
 #endif
+      // LED state
+      stateSet(steer_duty, motor_duty);
+
+      if(steer_duty < CTR_SERVO_DUTY)
+        SetDCMotDuty(diff_steer, motor_duty);
+      else
+        SetDCMotDuty(motor_duty, diff_steer);
     }
     
     // Check if command received to stop running
@@ -222,7 +235,12 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed)
       {
         uart_get(cmd);
         if(!strcmp((char*)cmd, CSTOP))
+        {
+          SetDCMotDuty(minspeed, minspeed);
+          for(uint32_t i=0;i<1000;++i);
+          SetDCMotDuty(0.0f, 0.0f);
           return;
+        }
       }
     );
 
@@ -231,7 +249,10 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed)
       DPRINT("left point: %u, right point: %u\r\n", pnts.l_pnt, pnts.r_pnt);
       DPRINT("midpoint: %f\r\n", midpoint);
       DPRINT("steer_duty: %f\r\n", steer_duty);
+      DPRINT("steer_duty_raw: %f\r\n", steer_duty_raw);
       DPRINT("error: %f\r\n", error);
+      DPRINT("motor_duty: %f\r\n", motor_duty);
+      DPRINT("diff_steer: %f\r\n", diff_steer);
       DPRINT("\r\n");
     );
   }

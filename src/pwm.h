@@ -32,7 +32,7 @@
 // Center servo duty
 #define CTR_SERVO_DUTY    ((MAX_SERVO_DUTY+MIN_SERVO_DUTY)/2.0f)
 
-void SetDCMotDuty(float duty);
+void SetDCMotDuty(float lduty, float rduty);
 void SetServoDuty(float duty);
 
 uint32_t servo_ready(void);

@@ -26,7 +26,7 @@
 
 // Parameters
 // Gains            DEFAULTS
-#define KP (0.420f)  // 0.5f
+#define KP (0.1f)  // 0.5f
 #define KI (0.0f)  // 0.1f
 #define KD (0.0f) // 0.25f
 // Speeds (PWM)
@@ -40,10 +40,10 @@
 #define MIN(A,B)  (A < B ? A : B)
 // Clip the value
 #define CLIP(V,MINV,MAXV) { \
-  if(V < MINV)              \
-    V = MINV;               \
-  else if (V > MAXV)        \
-    V = MAXV;               \
+  if(V < MINV)                \
+    V = MINV;                 \
+  else if (V > MAXV)          \
+    V = MAXV;                 \
 }
 
 // PWM Conversion factors
@@ -53,7 +53,7 @@
 #define SERVO_SCALAR ((float)MIN_SERVO_DUTY / (float)(N_CAM_PNTS-1))
 #define SERVO_BIAS   ((float)MIN_SERVO_DUTY)
 // Normalization factor from camera index error to servo-scale PWM error (for PID gain selection sake)
-#define NORM_CAM2SERVO(P) (-P*MIN_SERVO_DUTY/(2.0f*CAM_MID_PNT))
+#define NORM_CAM2SERVO(P) (-(P)*MIN_SERVO_DUTY/(2.0f*CAM_MID_PNT))
 
 // Debug Stuff
 #ifdef DEBUG
