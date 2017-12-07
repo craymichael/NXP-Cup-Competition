@@ -22,11 +22,10 @@
  *
  * Note: line gets modifed in this function
  */
-struct Result find_edges(uint16_t* line)
+struct Result find_edges(uint16_t* line, uint32_t midpoint_p)
 {
   struct Result r = {0,N_CAM_PNTS-1};
-  uint32_t max,
-           midpoint = N_CAM_PNTS / 2;
+  uint32_t max;
   float thresh;
   
   // Smooth data (5-point average) & find max
@@ -45,26 +44,26 @@ struct Result find_edges(uint16_t* line)
   max = MAX(line[N_CAM_PNTS-1],max);
   
   // Detect if car may be off the track
-  if (max < NOTRACK_THRESH)
+  /*if (max < NOTRACK_THRESH)
   {
     r.l_pnt = 0;
     r.r_pnt = 0;
     return r;
-  }
+  }*/
   
   // Set theshold using max
   thresh = (float)max * CAM_THRESH;
   
   // Find left & right points in "binarized" data
-  if (line[midpoint-1] < thresh || line[midpoint] < thresh) // if either midpoint is 0
+  if (line[midpoint_p-1] < thresh || line[midpoint_p] < thresh) // if either midpoint is 0
   {
-    for(uint32_t i=0; i<midpoint; ++i)
+    for(int32_t i=0; i<(midpoint_p>(N_CAM_PNTS-midpoint_p) ? midpoint_p : (N_CAM_PNTS-midpoint_p-1)); ++i)
     {
       // Check if value is interpreted as 1 (towards left)
-      if(line[midpoint+i] >= thresh) {
-        r.r_pnt = midpoint+i-1;
+      if((midpoint_p+i) < N_CAM_PNTS && line[midpoint_p+i] >= thresh) {
+        r.r_pnt = midpoint_p+i-1;
         // Find left point
-        for(uint32_t j=midpoint+i+1; j<N_CAM_PNTS; ++j)
+        for(uint32_t j=midpoint_p+i+1; j<N_CAM_PNTS; ++j)
         {
           // Check if value is interpreted as 0
           if(line[j] < thresh) {
@@ -75,10 +74,10 @@ struct Result find_edges(uint16_t* line)
         break;
       }
       // Check if value is interpreted as 1 (towards right)
-      if(line[midpoint-i-1] >= thresh) {
-        r.l_pnt = midpoint-i;
+      if(((int32_t)midpoint_p-i-1) >= 0 && line[midpoint_p-i-1] >= thresh) {
+        r.l_pnt = midpoint_p-i;
         // Find right point
-        for(int32_t j=midpoint-i-2; j>=0; --j)
+        for(int32_t j=midpoint_p-i-2; j>=0; --j)
         {
           // Check if value is interpreted as 0
           if(line[j] < thresh) {
@@ -92,7 +91,7 @@ struct Result find_edges(uint16_t* line)
   } else 
   {
     // Find points moving out from center
-    for(int32_t i=midpoint-1; i >= 0; --i)
+    for(int32_t i=midpoint_p-1; i >= 0; --i)
     {
       // Check if value is interpreted as 0
       if(line[i] < thresh) {
@@ -100,7 +99,7 @@ struct Result find_edges(uint16_t* line)
         break;
       }
     }
-    for(uint32_t i=midpoint; i < N_CAM_PNTS; ++i)
+    for(uint32_t i=midpoint_p; i < N_CAM_PNTS; ++i)
     {
       // Check if value is interpreted as 0
       if(line[i] < thresh) {

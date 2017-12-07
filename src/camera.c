@@ -28,17 +28,23 @@ uint16_t ADC0VAL;    // TODO(code style)
 
 #ifdef DEBUG_CAM // Camera Debugging function
   #include "serial.h"
+  #include "algorithm.h"
   #include <stdio.h>
 
   void debug_camera(void)
   {
     uint8_t str[100];
+    struct Result pnts;
+    float midpoint;
     
     for(;;)
     {
       // Every 2 seconds
       if (new_line) {
         GPIOB_PCOR = (1 << 22);
+        
+        pnts = find_edges(line, midpoint);  // Modifies line
+        midpoint = (float)(pnts.r_pnt + pnts.l_pnt) / 2.0f;
 
         // send the array over uart
         sprintf((char*)str,"%i\n\r",-1); // start value
@@ -48,6 +54,9 @@ uint16_t ADC0VAL;    // TODO(code style)
           sprintf((char*)str,"%i\n", line[i]);
           uart_put(str);
         }
+
+        sprintf((char*)str,"%f\n",midpoint);
+        uart_put(str);
 
         sprintf((char*)str,"%i\n\r",-2); // end value
         uart_put(str);

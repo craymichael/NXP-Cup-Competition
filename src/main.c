@@ -31,8 +31,22 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <float.h>
+// States
+#define CONTINUOUS   (0)
+#define BRAKE        (1)
+#define SPEEDUP      (2)
+#define WAIT         (3)
+
+#define BRAKE_FRAMES (10)
+#define BRAKE_PWM    (-100.0f)
+
+#define SPEEDUP_FRAMES (4)
+
+#define PWM_DANGER   (30.0f)
+
 void initialize(void);
-void run(float kp, float ki, float kd, float minspeed, float maxspeed);
+void run(float kp, float ki, float kd, float minspeed, float maxspeed, float brakeframes, float brakepwm);
 
 #define DUMB_WAY
 
@@ -70,6 +84,8 @@ int32_t main(void)
   // Min max DC motor speeds
   float minspeed = MINSPEED,
         maxspeed = MAXSPEED;
+  float brakeframes = BRAKE_FRAMES,
+        brakepwm = BRAKE_PWM;
   
 #ifdef DEBUG
   // Input command
@@ -78,6 +94,10 @@ int32_t main(void)
   
   // Init K64F modules
   initialize();
+  
+#ifdef DEBUG_CAM
+  debug_camera();
+#endif
   
   for(;;)
   {
@@ -95,32 +115,42 @@ int32_t main(void)
         DPRINT("  minspeed: %f\r\n", minspeed);
         DPRINT("  maxspeed: %f\r\n", maxspeed);
         DPRINT("==========================\r\n\r\n");
-        run(kp, ki, kd, minspeed, maxspeed);
+        run(kp, ki, kd, minspeed, maxspeed, brakeframes, brakepwm);
         DPRINT("Stopping run.\r\n");
       } else if(!strcmp((char*)cmd, CPID))
       {
         // Get KP
-        DPRINT("Enter KP:\r\n");
+        DPRINT("Enter KP(%f):\r\n", kp);
         uart_get(cmd);
         kp = strtof((char*)cmd, NULL);
         // Get KI
-        DPRINT("Enter KI:\r\n");
+        DPRINT("Enter KI(%f):\r\n", ki);
         uart_get(cmd);
         ki = strtof((char*)cmd, NULL);
         // Get KD
-        DPRINT("Enter KD:\r\n");
+        DPRINT("Enter KD(%f):\r\n", kd);
         uart_get(cmd);
         kd = strtof((char*)cmd, NULL);
       } else if(!strcmp((char*)cmd, CSPEEDS))
       {
-        // Get KI
-        DPRINT("Enter minspeed:\r\n");
+        // Get minspeed
+        DPRINT("Enter minspeed(%f):\r\n", minspeed);
         uart_get(cmd);
         minspeed = strtof((char*)cmd, NULL);
-        // Get KD
-        DPRINT("Enter maxspeed:\r\n");
+        // Get maxspeed
+        DPRINT("Enter maxspeed(%f):\r\n", maxspeed);
         uart_get(cmd);
         maxspeed = strtof((char*)cmd, NULL);
+      } else if(!strcmp((char*)cmd, CBRAKE))
+      {
+        // Get brake frames
+        DPRINT("Enter brakeframes(%f):\r\n", brakeframes);
+        uart_get(cmd);
+        brakeframes = strtof((char*)cmd, NULL);
+        // Get brake 
+        DPRINT("Enter brakePWM(%f):\r\n", brakepwm);
+        uart_get(cmd);
+        brakepwm = strtof((char*)cmd, NULL);
       }
     );
     // Else use buttons...TODO
@@ -130,16 +160,23 @@ int32_t main(void)
 }
 
 
-void run(float kp, float ki, float kd, float minspeed, float maxspeed)
+void run(float kp, float ki, float kd, float minspeed, float maxspeed, float brakeframes, float brakepwm)
 {
   uint16_t line[N_CAM_PNTS];
+  uint32_t speed_state,
+           wait_cycles;
   struct Result pnts;
   float steer_duty,
         steer_duty_raw,
         midpoint,
         error,
+        sharp_steer_dev,
         motor_duty,
-        diff_steer;
+        motor_duty_prev,
+        diff_steer,
+        brake_decrement,
+        speed_increment,
+        speed_target;
 
   PID servo_pid;
   
@@ -161,7 +198,11 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed)
 
   // Straight line, straight wheels
   SetDCMotDuty(minspeed, minspeed);
+  motor_duty = minspeed;
   steer_duty = CTR_SERVO_DUTY;
+  midpoint = N_CAM_PNTS / 2;
+  
+  speed_state = CONTINUOUS;
   
   // Camera
   for(;;)
@@ -169,7 +210,7 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed)
     // Get camera line scan output
     get_line(line);
     // Detect line positions
-    pnts = find_edges(line);
+    pnts = find_edges(line, midpoint);
     
     // Off track safety measure
     // TODO: move to state handling logic
@@ -196,28 +237,79 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed)
       steer_duty = steer_duty_raw;
       // Clip value
       CLIP(steer_duty, MIN_SERVO_DUTY, MAX_SERVO_DUTY);
-      // DC Variable Speed
-      motor_duty = maxspeed-(maxspeed-minspeed)*fabsf(CTR_SERVO_DUTY-steer_duty)/(MAX_SERVO_DUTY-CTR_SERVO_DUTY);
-      // Differential steering
-      if(steer_duty_raw < MIN_SERVO_DUTY)
-      {
-        diff_steer = motor_duty / (MIN_SERVO_DUTY - steer_duty_raw);
-      } else if(steer_duty_raw > MAX_SERVO_DUTY)
-      {
-        diff_steer = motor_duty / (steer_duty_raw - MAX_SERVO_DUTY);
-      } else {
-        diff_steer = motor_duty;
-      }
-      // Diff steering
-      //diff_steer = ki * motor_duty * (1.0f - fabsf(steer_duty - CTR_SERVO_DUTY) / 2.5f);
-      //diff_steer = ki * maxspeed * (1.0f - minspeed / MAX_SERVO_DUTY - fabsf(steer_duty - CTR_SERVO_DUTY) / 2.5f) + minspeed / MAX_SERVO_DUTY;
       
+      motor_duty_prev = motor_duty;
+      
+      switch(speed_state)
+      {
+        case BRAKE:
+          motor_duty -= brake_decrement;
+          CLIP(motor_duty, MIN_DCMOT_DUTY, maxspeed);
+          diff_steer = motor_duty;
+          if(motor_duty <= (brakepwm + FLT_EPSILON * 2.0f))
+          {
+            wait_cycles = brakeframes;
+            speed_state = WAIT;
+          }
+        
+        case WAIT:
+          if(--wait_cycles == 0)
+            speed_state = CONTINUOUS;
+        
+        case SPEEDUP:
+          motor_duty += speed_increment;
+          CLIP(motor_duty, minspeed, maxspeed);
+          diff_steer = motor_duty;
+          if(motor_duty >= (speed_target - FLT_EPSILON * 2.0f))
+            speed_state = CONTINUOUS;
+          
+        case CONTINUOUS:
+          // DC Variable Speed
+          //motor_duty = maxspeed-(maxspeed-minspeed)*fabsf(CTR_SERVO_DUTY-steer_duty)/(MAX_SERVO_DUTY-CTR_SERVO_DUTY);
+          motor_duty = maxspeed / (fabsf(CTR_SERVO_DUTY-steer_duty_raw)*ki);  //ki: how soon to turn hard
+          // Clip PWM speed
+          CLIP(motor_duty, minspeed, maxspeed);
+          
+          if((motor_duty_prev - motor_duty) >= (maxspeed - minspeed)*0.75f) // brake when slowing down dangerously
+          {
+            motor_duty = brakepwm;
+            speed_state = BRAKE;
+            brake_decrement = (motor_duty_prev - motor_duty) / brakeframes;
+            
+            motor_duty = motor_duty_prev - brake_decrement;
+            diff_steer = motor_duty;
+          } else if((motor_duty - motor_duty_prev) >= PWM_DANGER) // carefully speed up if appropriate
+          {
+            speed_state = SPEEDUP;
+            speed_increment = (motor_duty - motor_duty_prev) / SPEEDUP_FRAMES;
+            speed_target = motor_duty; // set duty as the target
+            
+            motor_duty = motor_duty_prev + speed_increment;
+            diff_steer = motor_duty;
+          } else
+          {
+            sharp_steer_dev = maxspeed / (minspeed * ki);
+            // Differential steering
+            if(steer_duty_raw < CTR_SERVO_DUTY - sharp_steer_dev)
+            {
+              diff_steer = motor_duty / ((CTR_SERVO_DUTY - steer_duty_raw) * kd);
+              CLIP(diff_steer, 0, motor_duty);
+            } else if(steer_duty_raw > CTR_SERVO_DUTY + sharp_steer_dev)
+            {
+              diff_steer = motor_duty / ((steer_duty_raw - CTR_SERVO_DUTY) * kd);
+              CLIP(diff_steer, 0, motor_duty);
+            } else {
+              diff_steer = motor_duty;
+            }
+          }
+      }
+
       SetServoDuty(steer_duty);
 #else
       // Normalize midpoint to error bounds [-2.5,+2.5] for servo
       error = NORM_CAM2SERVO(CAM_MID_PNT-midpoint);
       steer_duty += pid_compute(&servo_pid, error);
-      CLIP(steer_duty, steer_duty, MIN_SERVO_DUTY, MAX_SERVO_DUTY);
+      CLIP(steer_duty, MIN_SERVO_DUTY, MAX_SERVO_DUTY);
       SetServoDuty(steer_duty);
 #endif
       // LED state
@@ -227,6 +319,7 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed)
         SetDCMotDuty(diff_steer, motor_duty);
       else
         SetDCMotDuty(motor_duty, diff_steer);
+      //SetDCMotDuty(motor_duty, motor_duty);
     }
     
     // Check if command received to stop running

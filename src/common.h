@@ -25,13 +25,13 @@
 #define CAM_MID_PNT          ((float)(N_CAM_PNTS-1) / 2.0f)
 
 // Parameters
-// Gains            DEFAULTS
-#define KP (0.1f)  // 0.5f
-#define KI (0.0f)  // 0.1f
-#define KD (0.0f) // 0.25f
+// Gains
+#define KP (2.0f)  // Turnyness
+#define KI (5.0f)  // Higher means less turn angle reserved for straight speed do
+#define KD (2.5f) // Driftyness
 // Speeds (PWM)
-#define MINSPEED (40.0f)
-#define MAXSPEED (60.0f)
+#define MINSPEED (50.0f)
+#define MAXSPEED (80.0f)
 
 // "FUNCTIONS"
 // Return max of A and B

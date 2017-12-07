@@ -26,6 +26,7 @@
 #define CSTOP   ("stop")
 #define CPID    ("pid")
 #define CSPEEDS ("speed")
+#define CBRAKE  ("brake")
 
 void uart_init(void);
 

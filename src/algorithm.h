@@ -27,6 +27,6 @@ struct Result {
   uint32_t r_pnt;
 };
 
-struct Result find_edges(uint16_t* line);
+struct Result find_edges(uint16_t* line, uint32_t midpoint_p);
 
 #endif

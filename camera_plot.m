@@ -19,7 +19,7 @@
 function plot_cams 
 
 %Send over bluetooth or serial
-serialPort = 'COM55';
+serialPort = 'COM61';
 serialObject = serial(serialPort);
 %configure serial connection
 serialObject.BaudRate = 9600; %(Default)
@@ -41,14 +41,14 @@ smoothtrace  = zeros(1,128); %Stored Values for 5-Point Averager
 while (1)
     % Check for data in the stream
     if serialObject.BytesAvailable
-        val = fscanf(serialObject,'%i');
+        val = fscanf(serialObject,'%f');
         %val
         if ((val == -1) || (val == -3)) % -1 and -3 are start keywords
             count = 1;
             %val
         elseif (val == -2) % End camera1 tx
-            if (count == 128)
-                plotdata(trace, 1);
+            if (count == 129)
+                plotdata(trace, 1, mdpnt);
             end %otherwise there was an error and don't plot
             count = 1;
             %plotdata(trace);
@@ -56,7 +56,11 @@ while (1)
             count = 1;
             plotdata(trace, 2);
         else
-            trace(count) = val;
+            if (count == 128)
+                mdpnt = val;
+            else
+                trace(count) = val;
+            end
             count = count + 1;
         end % if 
     end %bytes available    
@@ -72,7 +76,7 @@ end %plot_cams
 %*****************************************************************************************************************
 %*****************************************************************************************************************
 
-function plotdata(trace, cam)
+function plotdata(trace, cam, mdpnt)
 drawnow;
 subplot(4,2,cam);
 %figure(figureHandle);
@@ -118,6 +122,8 @@ lefti = leftzs(1) + 64;
 
 text(righti,0,'rline index \rightarrow','HorizontalAlignment','right');
 text(lefti,0,'\leftarrow lline index');
+
+text(mdpnt, 1, '\leftarrow K64F mdpnt');
 
 end %function
 

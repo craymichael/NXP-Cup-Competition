@@ -29,12 +29,17 @@ void uart_init()
 
   // Enable clock for UART module
   SIM_SCGC4 |= SIM_SCGC4_UART0_MASK;
-  
+
+#ifdef DEBUG_CAM
+  SIM_SCGC5 |= SIM_SCGC5_PORTB_MASK; // Enable Port B
+  PORTB_PCR16 |= PORT_PCR_MUX(0x3);  // PTB16 - UART0_RX
+  PORTB_PCR17 |= PORT_PCR_MUX(0x3);  // PTB17 - UART0_TX
+#else
   // Enable pins to connect with serial bluetooth module
   SIM_SCGC5 |= SIM_SCGC5_PORTA_MASK;
   PORTA_PCR1 = PORT_PCR_MUX(0x2) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK; // PTA1 - UART0_RX
   PORTA_PCR2 = PORT_PCR_MUX(0x2); // PTA2 - UART0_TX
-
+#endif
   /* Configure the UART for establishing serial communication */
   // Disable transmitter and receiver until proper settings are chosen for the UART module
   UART0_C2 &= ~(UART_C2_RE_MASK |
