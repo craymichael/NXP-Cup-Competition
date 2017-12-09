@@ -17,7 +17,7 @@
 #include "common.h"
 
 #define FTM0_MOD_VALUE (DEFAULT_SYSTEM_CLOCK / PWM_DCMOT_FREQ - 1u)
-#define FTM3_MOD_VALUE (DEFAULT_SYSTEM_CLOCK / (PWM_SERVO_FREQ * 128u) - 1u)
+#define FTM3_MOD_VALUE (DEFAULT_SYSTEM_CLOCK / (PWM_SERVO_FREQ * 8u) - 1u)
 
 // Whether servo can steer
 uint32_t can_steer = 0;
@@ -50,7 +50,7 @@ void SetDCMotDuty(float lduty, float rduty)
     FTM0_C3V = lmod;  // PTC4 (dir 1)
     FTM0_C2V = 0;
   } else {
-    lmod = (FTM0_MOD_VALUE * lduty) / 100u;
+    lmod = (FTM0_MOD_VALUE * -lduty) / 100u;
     // Rear wheel 1
     FTM0_C2V = lmod;  // PTC3 (dir 0)
     FTM0_C3V = 0;
@@ -200,10 +200,10 @@ void InitServoPWM(void)
   FTM3_C0SC &= ~FTM_CnSC_ELSA_MASK;
 
   // 39.3.3 FTM Setup
-  // Set prescale value to 1 
+  // Set prescale value to 8
   // Chose system clock source
   // Timer Overflow Interrupt Enable
-  FTM3_SC = FTM_SC_PS(0x7)   |
+  FTM3_SC = FTM_SC_PS(0x3)   |
             FTM_SC_CLKS(0x1) |
             FTM_SC_TOIE_MASK;
   // NVIC pls

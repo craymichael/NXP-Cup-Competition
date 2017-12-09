@@ -26,12 +26,17 @@
 
 // Parameters
 // Gains
-#define KP (2.0f)  // Turnyness
-#define KI (5.0f)  // Higher means less turn angle reserved for straight speed do
-#define KD (2.5f) // Driftyness
+#define KP (2.5f) // Turnyness
+#define KI (5.0f) // Higher means less turn angle reserved for straight speedup (choose value above 4)
+#define KD (2.3f) // Driftyness
 // Speeds (PWM)
 #define MINSPEED (50.0f)
 #define MAXSPEED (80.0f)
+// Braking parameters
+#define BRAKE_FRAMES (10)
+#define BRAKE_PWM    (-10.0f)
+// Max PWM delta
+#define PWM_DANGER   (20.0f)
 
 // "FUNCTIONS"
 // Return max of A and B
