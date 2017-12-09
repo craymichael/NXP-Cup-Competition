@@ -26,8 +26,8 @@
 
 // Parameters
 // Gains
-#define KP (2.5f) // Turnyness
-#define KI (7.5f) // Higher means less turn angle reserved for straight speedup (choose value above 4) (OLD: 5.75f)
+#define KP (2.6f) // Turnyness
+#define KI (10.0f) // Higher means less turn angle reserved for straight speedup (choose value above 4) (OLD: 5.75f)
 #define KD (0.7f) // Driftyness (OLD: 0.8)
 // Speeds (PWM)
 #define MINSPEED (50.0f)

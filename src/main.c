@@ -220,85 +220,90 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed, float bra
       return;
     }*/
     
+    // Compute camera midpoint
+    midpoint = (float)(pnts.r_pnt + pnts.l_pnt) / 2.0f;
+    
+    // Normalize midpoint to bounds [5,10] for servo
+    steer_duty_raw = SERVO_SCALAR * (midpoint - N_CAM_PNTS + 1) * -1.0f + SERVO_BIAS;
+    // Amplify relative error
+    steer_duty_raw += (steer_duty_raw - CTR_SERVO_DUTY) * kp;
+    
+    error = CAM_MID_PNT - midpoint; // cam index error
+    
+    // sqerror
+    /*if(error < 0.0f)
+      steer_duty_raw = kp*-1.0f*(CTR_SERVO_DUTY-MIN_SERVO_DUTY)*error*error/(CAM_MID_PNT*CAM_MID_PNT)+CTR_SERVO_DUTY;
+    else
+      steer_duty_raw = kp*(CTR_SERVO_DUTY-MIN_SERVO_DUTY)*error*error/(CAM_MID_PNT*CAM_MID_PNT)+CTR_SERVO_DUTY;*/
+  
+    // error do
+    //steer_duty_raw = kp*(CTR_SERVO_DUTY-MIN_SERVO_DUTY)*error/(CAM_MID_PNT*CAM_MID_PNT)+CTR_SERVO_DUTY;
+    steer_duty = steer_duty_raw;
+    // Clip value
+    CLIP(steer_duty, MIN_SERVO_DUTY, MAX_SERVO_DUTY);
+    
+    motor_duty_prev = motor_duty;
+    
+    if(speed_state == CONTINUOUS)
+    {
+      // DC Variable Speed
+      //motor_duty = maxspeed / (fabsf(CTR_SERVO_DUTY-steer_duty_raw)*ki);  //ki: how soon to turn hard
+      //dooty = min(max((MAX/2) ./ (abs(7.5-pwm') * KI) + MAX/2, 50), 100);
+      motor_duty = (maxspeed/2.0f) / (fabsf(CTR_SERVO_DUTY-steer_duty_raw)*ki) + maxspeed/2.0f;  //ki: how soon to turn hard
+      // Clip PWM speed
+      CLIP(motor_duty, minspeed, maxspeed);
+      // brake when slowing down dangerously (BRAKE)
+      //if((motor_duty_prev - motor_duty) >= MIN((maxspeed-minspeed)*0.75f, 20.0f)) // PWM_DANGER?
+      if(fabsf(error) >= brakeerror && berror == 0)
+      {
+        berror = 1;
+        speed_state = BRAKE;
+        
+        motor_duty = motor_duty_prev - PWM_DANGER;
+        diff_steer = motor_duty;
+      } // Carefully speed up if appropriate (SPEEDUP)
+      else if((motor_duty - motor_duty_prev) >= PWM_DANGER)
+      {
+        speed_state = SPEEDUP;
+        target_pwm = motor_duty; // set duty as the target
+        
+        motor_duty = motor_duty_prev + PWM_DANGER; // increment by maximum amount permisable
+        diff_steer = motor_duty;
+      } // CONTINUOUS
+      else
+      {
+        sharp_steer_dev = maxspeed / (minspeed * ki);
+        // Differential steering
+        //diff = min(max(abs((MAX*2) ./ ((7.5-pwm')*KD)) - (MAX),-100),100);
+        if(steer_duty_raw < CTR_SERVO_DUTY - sharp_steer_dev || steer_duty_raw > CTR_SERVO_DUTY + sharp_steer_dev)
+        {
+          diff_steer = fabsf((motor_duty*2.0f) / ((CTR_SERVO_DUTY - steer_duty_raw) * kd)) - motor_duty;
+          CLIP(diff_steer, -motor_duty, motor_duty);
+        }
+        /*else if(steer_duty_raw > CTR_SERVO_DUTY + sharp_steer_dev)
+        {
+          diff_steer = (motor_duty*2.0f) / ((steer_duty_raw - CTR_SERVO_DUTY) * kd) - motor_duty;
+          CLIP(diff_steer, -motor_duty, motor_duty);
+        }*/
+        else
+        {
+          diff_steer = motor_duty;
+        }
+      }
+    }
+    
     // Make control adjustments Change steering duty
     if(servo_ready()) // every ~20ms
     {
-      // Compute camera midpoint
-      midpoint = (float)(pnts.r_pnt + pnts.l_pnt) / 2.0f;
-      
-      // Normalize midpoint to bounds [5,10] for servo
-      steer_duty_raw = SERVO_SCALAR * (midpoint - N_CAM_PNTS + 1) * -1.0f + SERVO_BIAS;
-      // Amplify relative error
-      steer_duty_raw += (steer_duty_raw - CTR_SERVO_DUTY) * kp;
-      
-      error = CAM_MID_PNT - midpoint; // cam index error
-      
-      // sqerror
-      /*if(error < 0.0f)
-        steer_duty_raw = kp*-1.0f*(CTR_SERVO_DUTY-MIN_SERVO_DUTY)*error*error/(CAM_MID_PNT*CAM_MID_PNT)+CTR_SERVO_DUTY;
-      else
-        steer_duty_raw = kp*(CTR_SERVO_DUTY-MIN_SERVO_DUTY)*error*error/(CAM_MID_PNT*CAM_MID_PNT)+CTR_SERVO_DUTY;*/
-    
-      // error do
-      //steer_duty_raw = kp*(CTR_SERVO_DUTY-MIN_SERVO_DUTY)*error/(CAM_MID_PNT*CAM_MID_PNT)+CTR_SERVO_DUTY;
-      steer_duty = steer_duty_raw;
-      // Clip value
-      CLIP(steer_duty, MIN_SERVO_DUTY, MAX_SERVO_DUTY);
-      
-      motor_duty_prev = motor_duty;
-      
       if(fabsf(error) < brakeerror)
         berror = 0;
       
       switch(speed_state)
       {
         // Normal/continuous and state change handling
-        case CONTINUOUS:
-          // DC Variable Speed
-          //motor_duty = maxspeed / (fabsf(CTR_SERVO_DUTY-steer_duty_raw)*ki);  //ki: how soon to turn hard
-          //dooty = min(max((MAX/2) ./ (abs(7.5-pwm') * KI) + MAX/2, 50), 100);
-          motor_duty = (maxspeed/2.0f) / (fabsf(CTR_SERVO_DUTY-steer_duty_raw)*ki) + maxspeed/2.0f;  //ki: how soon to turn hard
-          // Clip PWM speed
-          CLIP(motor_duty, minspeed, maxspeed);
-          // brake when slowing down dangerously (BRAKE)
-          //if((motor_duty_prev - motor_duty) >= MIN((maxspeed-minspeed)*0.75f, 20.0f)) // PWM_DANGER?
-          if(fabsf(error) >= brakeerror && berror == 0)
-          {
-            berror = 1;
-            speed_state = BRAKE;
-            
-            motor_duty = motor_duty_prev - PWM_DANGER;
-            diff_steer = motor_duty;
-          } // Carefully speed up if appropriate (SPEEDUP)
-          else if((motor_duty - motor_duty_prev) >= PWM_DANGER)
-          {
-            speed_state = SPEEDUP;
-            target_pwm = motor_duty; // set duty as the target
-            
-            motor_duty = motor_duty_prev + PWM_DANGER; // increment by maximum amount permisable
-            diff_steer = motor_duty;
-          } // CONTINUOUS
-          else
-          {
-            sharp_steer_dev = maxspeed / (minspeed * ki);
-            // Differential steering
-            //diff = min(max(abs((MAX*2) ./ ((7.5-pwm')*KD)) - (MAX),-100),100);
-            if(steer_duty_raw < CTR_SERVO_DUTY - sharp_steer_dev || steer_duty_raw > CTR_SERVO_DUTY + sharp_steer_dev)
-            {
-              diff_steer = fabsf((motor_duty*2.0f) / ((CTR_SERVO_DUTY - steer_duty_raw) * kd)) - motor_duty;
-              CLIP(diff_steer, -motor_duty, motor_duty);
-            }
-            /*else if(steer_duty_raw > CTR_SERVO_DUTY + sharp_steer_dev)
-            {
-              diff_steer = (motor_duty*2.0f) / ((steer_duty_raw - CTR_SERVO_DUTY) * kd) - motor_duty;
-              CLIP(diff_steer, -motor_duty, motor_duty);
-            }*/
-            else
-            {
-              diff_steer = motor_duty;
-            }
-          }
-          break;
+        /*case CONTINUOUS:
+          
+          break;*/
         
         case BRAKE:
           motor_duty = motor_duty_prev - PWM_DANGER;
@@ -328,12 +333,6 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed, float bra
       SetServoDuty(steer_duty);
       // LED state
       stateSet(steer_duty, motor_duty);
-    
-      // Steering Update
-      if(steer_duty < CTR_SERVO_DUTY)
-        SetDCMotDuty(diff_steer, motor_duty);
-      else
-        SetDCMotDuty(motor_duty, diff_steer);
       
       // Debug printing
       DDELAY(200,
@@ -350,6 +349,12 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed, float bra
         DPRINT("\r\n");
       );
     }
+    
+    // Speed Update
+    if(steer_duty < CTR_SERVO_DUTY)
+      SetDCMotDuty(diff_steer, motor_duty);
+    else
+      SetDCMotDuty(motor_duty, diff_steer);
     
     // Check if command received to stop running
     DBG(
