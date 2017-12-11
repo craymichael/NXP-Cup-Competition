@@ -12,13 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* file: algorithm.c
+ *
+ * Implements alorithms for detecting edges from camera data
+ */
 #include <MK64F12.h>
 #include "algorithm.h"
 #include "common.h"
 
 
 /* An edge (line) finding algorithm
- * Worst-case complexity O(n^2)
+ * Worst-case complexity O(n)
  *
  * Note: line gets modifed in this function
  */
@@ -43,7 +47,7 @@ struct Result find_edges(uint16_t* line, uint32_t midpoint_p)
   line[N_CAM_PNTS-1] = (line[N_CAM_PNTS-3] + line[N_CAM_PNTS-2] + line[N_CAM_PNTS-1]) / 3;
   max = MAX(line[N_CAM_PNTS-1],max);
   
-  // Detect if car may be off the track
+  // Detect if car may be off the track (carpet stopping) DISABLED
   /*if (max < NOTRACK_THRESH)
   {
     r.l_pnt = 0;

@@ -12,6 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* file: camera.c
+ *
+ * Handles logic for communicating with line scan camera and providing an
+ * interface for external code to access such data
+ */
 #include "MK64F12.h"
 #include "camera.h"
 #include "common.h"

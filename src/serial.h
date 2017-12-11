@@ -12,6 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* file: serial.h
+ *
+ * Initializes and communicates with UART0 using interrupts for serial
+ * communication. Uses GPIO pins to communicate with BT module if specified
+ * during compilation.
+ */
 #ifndef _SERIAL_H_
 #define _SERIAL_H_
 

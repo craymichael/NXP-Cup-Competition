@@ -12,12 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* file: serial.c
+ *
+ * Initializes and communicates with UART0 using interrupts for serial
+ * communication. Uses GPIO pins to communicate with BT module if specified
+ * during compilation.
+ */
 #include "MK64F12.h"
 #include "serial.h"
 #include "common.h"
 #include "queue.h"
 #include <stdio.h>
 
+// Queue and data declaration
 ch_queue_t rx_buf;
 uint8_t rx_buf_data[RX_BUF_SZ];
 

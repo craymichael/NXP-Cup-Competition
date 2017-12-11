@@ -12,11 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* file: control.c
+ *
+ * Implements PID
+ */
 #include "algorithm.h"
 #include "control.h"
 #include "common.h"
 
 
+// Initializes a PID struct with appropriate parameters
 void pid_init(PID* pid, float setpoint, float kp, float ki, float kd)
 {
   pid->kp = kp;

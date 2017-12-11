@@ -12,6 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* file: common.h
+ *
+ * Contains common parameters among most files and macros (+debug)
+ */
 #ifndef _COMMON_H_
 #define _COMMON_H_
 

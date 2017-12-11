@@ -12,6 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* file: states.c
+ *
+ * Contains state change logic for LEDs
+ */
 #include "MK64F12.h"
 #include "common.h"
 #include "control.h"
@@ -23,29 +27,28 @@
 #include "serial.h"
 #endif
 
-#include <math.h>  // TODTODOTODODODO
 
 void stateSet(float steerDuty, int32_t motorDuty){
-    if(motorDuty == 0)
-    {
-        OFFLED
-        OFFTRACK
-    }
-    if(steerDuty < 7.0f)
-    {
-        OFFLED
-        LEFT
-    }
-    if(steerDuty > 8.0f)
-    {
-        OFFLED
-        RIGHT
-    }
-    else
-    {
-        OFFLED
-        STRAIGHT   
-    }
+  if(motorDuty == 0)
+  {
+    OFFLED;
+    OFFTRACK;
+  }
+  if(steerDuty < 7.0f)
+  {
+    OFFLED;
+    LEFT;
+  }
+  if(steerDuty > 8.0f)
+  {
+    OFFLED;
+    RIGHT;
+  }
+  else
+  {
+    OFFLED;
+    STRAIGHT;
+  }
 }
 
  void LED_Init(void){

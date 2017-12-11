@@ -12,6 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* file: camera.h
+ *
+ * Handles logic for communicating with line scan camera and providing an
+ * interface for external code to access such data
+ */
 #ifndef _CAMERA_H_
 #define _CAMERA_H_
 

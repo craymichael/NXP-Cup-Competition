@@ -12,6 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* file: pwm.h
+ *
+ * Responsible for initializing FTM modules in a manner to control
+ * H-bridges in multiple directions
+ */
 #ifndef _PWM_H_
 #define _PWM_H_
 

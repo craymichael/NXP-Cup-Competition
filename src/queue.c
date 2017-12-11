@@ -12,9 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* file: queue.c
+ *
+ * Implements a uint8_t (unsigned char) queue
+ */
 #include "queue.h"
 
 
+// Initializes queue with parameters
 void ch_queue_init(ch_queue_t* queue, uint8_t* data, uint32_t capacity)
 {
   queue->capacity = capacity;
@@ -25,18 +30,21 @@ void ch_queue_init(ch_queue_t* queue, uint8_t* data, uint32_t capacity)
 }
 
 
+// Is the queue full?
 uint32_t ch_queue_full(ch_queue_t* queue)
 {
   return queue->size == queue->capacity;
 }
 
 
+// Is the queue empty?
 uint32_t ch_queue_empty(ch_queue_t* queue)
 {
   return queue->size == 0;
 }
 
 
+// Push onto queue if not full
 void ch_queue_push(ch_queue_t* queue, uint8_t data)
 {
   if (queue->size == queue->capacity)
@@ -54,6 +62,7 @@ void ch_queue_push(ch_queue_t* queue, uint8_t data)
 }
 
 
+// Pop from queue if not empty
 uint8_t ch_queue_pop(ch_queue_t* queue)
 {
   uint8_t popped;

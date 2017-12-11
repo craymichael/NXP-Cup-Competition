@@ -12,28 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* file: states.h
+ *
+ * Contains state change logic for LEDs
+ */
 #ifndef _STATES_H_
 #define _STATES_H_
 /*
-GPIOB_PCOR = (1UL << 21); Turn on Blue LED
-GPIOB_PCOR = (1UL << 22); Turn on Red LED
-GPIOE_PCOR = (1UL << 26); Turn on Green LED
+  GPIOB_PCOR = (1UL << 21); Turn on Blue LED
+  GPIOB_PCOR = (1UL << 22); Turn on Red LED
+  GPIOE_PCOR = (1UL << 26); Turn on Green LED
 
-GPIOB_PSOR = (1UL << 21); Turn off Blue LED
-GPIOB_PSOR = (1UL << 22); Turn off Red LED
-GPIOE_PSOR = (1UL << 26); Turn off Green LED
+  GPIOB_PSOR = (1UL << X); Turn off LED
 */
-#define OFFTRACK                GPIOB_PCOR |= (1UL << 22); 
-#define LEFT                    GPIOB_PCOR |= (1UL << 21) | (1UL << 22);  
-#define RIGHT                   GPIOE_PCOR |= (1UL << 26); GPIOB_PCOR |= (1UL << 21);
-#define STRAIGHT                GPIOE_PCOR |= (1UL << 26);
-#define FINISHED
-#define OFFLED                  GPIOB_PSOR |= (1UL << 21) | (1UL << 22); GPIOE_PSOR |= (1UL << 26);
- void stateSet(float steerDuty, int32_t Motorduty);
- void LED_Init(void);
+#define OFFTRACK                {GPIOB_PCOR |= (1UL << 22);}
+#define LEFT                    {GPIOB_PCOR |= (1UL << 21) | (1UL << 22);}
+#define RIGHT                   {GPIOE_PCOR |= (1UL << 26); GPIOB_PCOR |= (1UL << 21);}
+#define STRAIGHT                {GPIOE_PCOR |= (1UL << 26);}
+#define OFFLED                  {GPIOB_PSOR |= (1UL << 21) | (1UL << 22); GPIOE_PSOR |= (1UL << 26);}
+
+void stateSet(float steerDuty, int32_t Motorduty);
+void LED_Init(void);
 
 #endif
-
-
-
-    

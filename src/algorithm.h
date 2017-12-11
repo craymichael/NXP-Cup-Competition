@@ -12,6 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* file: algorithm.h
+ *
+ * Implements alorithms for detecting edges from camera data
+ */
 #ifndef _ALGORITHM_H_
 #define _ALGORITHM_H_
 

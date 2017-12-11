@@ -12,6 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* file: pwm.c
+ *
+ * Responsible for initializing FTM modules in a manner to control
+ * H-bridges in multiple directions
+ */
 #include <MK64F12.h>
 #include "pwm.h"
 #include "common.h"

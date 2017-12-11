@@ -12,6 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ /* file: main.c
+  *
+  * Responsible for initializing all modules and providing an interface
+  * for serial Bluetooth communication to start, stop, and tune runs
+  */
 #include "MK64F12.h"
 #include "PWM.h"
 #include "camera.h"
@@ -87,16 +92,13 @@ int32_t main(void)
   // Init K64F modules
   initialize();
   
-#ifdef DEBUG_CAM
-  debug_camera();
-#endif
-  
   DPRINT("Enter Command:\r\n");
   
   for(;;)
   {
     if((GPIOC_PDIR & (1 << 6)) == 0) //SW2
       run(kp, ki, kd, minspeed, maxspeed, brakeframes, brakepwm, brakeerror);
+    
     DBG(
       // Wait until BT command received
       if(uart_hasdata())
@@ -104,7 +106,7 @@ int32_t main(void)
         uart_get(cmd);
         if(!strcmp((char*)cmd, CSTART))
         {
-          // Run
+          // Run with specified paramters
           DPRINT("Running with:\r\n");
           DPRINT("  kp:       %f\r\n", kp);
           DPRINT("  ki:       %f\r\n", ki);
@@ -227,33 +229,19 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed, float bra
     steer_duty_raw = SERVO_SCALAR * (midpoint - N_CAM_PNTS + 1) * -1.0f + SERVO_BIAS;
     // Amplify relative error
     steer_duty_raw += (steer_duty_raw - CTR_SERVO_DUTY) * kp;
-    
     error = CAM_MID_PNT - midpoint; // cam index error
-    
-    // sqerror
-    /*if(error < 0.0f)
-      steer_duty_raw = kp*-1.0f*(CTR_SERVO_DUTY-MIN_SERVO_DUTY)*error*error/(CAM_MID_PNT*CAM_MID_PNT)+CTR_SERVO_DUTY;
-    else
-      steer_duty_raw = kp*(CTR_SERVO_DUTY-MIN_SERVO_DUTY)*error*error/(CAM_MID_PNT*CAM_MID_PNT)+CTR_SERVO_DUTY;*/
-  
-    // error do
-    //steer_duty_raw = kp*(CTR_SERVO_DUTY-MIN_SERVO_DUTY)*error/(CAM_MID_PNT*CAM_MID_PNT)+CTR_SERVO_DUTY;
     steer_duty = steer_duty_raw;
     // Clip value
     CLIP(steer_duty, MIN_SERVO_DUTY, MAX_SERVO_DUTY);
-    
     motor_duty_prev = motor_duty;
     
     if(speed_state == CONTINUOUS)
     {
       // DC Variable Speed
-      //motor_duty = maxspeed / (fabsf(CTR_SERVO_DUTY-steer_duty_raw)*ki);  //ki: how soon to turn hard
-      //dooty = min(max((MAX/2) ./ (abs(7.5-pwm') * KI) + MAX/2, 50), 100);
       motor_duty = (maxspeed/2.0f) / (fabsf(CTR_SERVO_DUTY-steer_duty_raw)*ki) + maxspeed/2.0f;  //ki: how soon to turn hard
       // Clip PWM speed
       CLIP(motor_duty, minspeed, maxspeed);
       // brake when slowing down dangerously (BRAKE)
-      //if((motor_duty_prev - motor_duty) >= MIN((maxspeed-minspeed)*0.75f, 20.0f)) // PWM_DANGER?
       if(fabsf(error) >= brakeerror && berror == 0)
       {
         berror = 1;
@@ -274,17 +262,11 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed, float bra
       {
         sharp_steer_dev = maxspeed / (minspeed * ki);
         // Differential steering
-        //diff = min(max(abs((MAX*2) ./ ((7.5-pwm')*KD)) - (MAX),-100),100);
         if(steer_duty_raw < CTR_SERVO_DUTY - sharp_steer_dev || steer_duty_raw > CTR_SERVO_DUTY + sharp_steer_dev)
         {
           diff_steer = fabsf((motor_duty*2.0f) / ((CTR_SERVO_DUTY - steer_duty_raw) * kd)) - motor_duty;
           CLIP(diff_steer, -motor_duty, motor_duty);
         }
-        /*else if(steer_duty_raw > CTR_SERVO_DUTY + sharp_steer_dev)
-        {
-          diff_steer = (motor_duty*2.0f) / ((steer_duty_raw - CTR_SERVO_DUTY) * kd) - motor_duty;
-          CLIP(diff_steer, -motor_duty, motor_duty);
-        }*/
         else
         {
           diff_steer = motor_duty;
@@ -300,12 +282,8 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed, float bra
       
       switch(speed_state)
       {
-        // Normal/continuous and state change handling
-        /*case CONTINUOUS:
-          
-          break;*/
-        
         case BRAKE:
+          // Continue decrementing rear wheel duty until target reached, then wait
           motor_duty = motor_duty_prev - PWM_DANGER;
           CLIP(motor_duty, brakepwm, maxspeed);
           diff_steer = motor_duty;
@@ -317,11 +295,13 @@ void run(float kp, float ki, float kd, float minspeed, float maxspeed, float bra
           break;
         
         case WAIT:
+          // Wait for the specified amount of cycles
           if(--wait_cycles == 0)
             speed_state = CONTINUOUS;
           break;
         
         case SPEEDUP:
+          // Speed up gradually until the target is reached
           motor_duty = motor_duty_prev + PWM_DANGER;
           CLIP(motor_duty, motor_duty_prev, target_pwm);
           diff_steer = motor_duty;
@@ -393,7 +373,7 @@ void initialize(void)
   // Init LEDs
   LED_Init();
   
-  // Buttons...
+  // Buttons
   //initialize clocks for each different port used.
   SIM_SCGC5 |= SIM_SCGC5_PORTA_MASK;
   SIM_SCGC5 |= SIM_SCGC5_PORTC_MASK; 
@@ -404,7 +384,7 @@ void initialize(void)
                 PORT_PCR_PS_MASK;
   PORTA_PCR4 |= PORT_PCR_MUX(1);
   PORTC_PCR6 |= PORT_PCR_MUX(1);
-  // Set the push buttons as an input
+  // Set the push buttons as inputs
   GPIOA_PDDR &= ~(1 << 4); //SW3
   GPIOC_PDDR &= ~(1 << 6); //SW2
   
