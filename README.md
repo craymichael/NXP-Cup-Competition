@@ -1,5 +1,7 @@
 # NXP Cup Competition Project
-TODO...
+This repository encapsulates the code used in the Fall 2017 NXP cup at RIT. A line-following
+algorithm is employed with PID control to navigate a NXP car through NXP tracks. Cornering
+detection triggers braking and differential steering to drift through tight bends.
 
 Fixing Errors Due to Device not Being Found:
 ```Error instantiating RTE components
